@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { @apply border-surface-200; }
+
+  html, body, #root {
+    height: 100%;
+    overflow: hidden; /* Desktop app — no page scroll, panels scroll internally */
+    user-select: none; /* Native app feel — disable accidental text selection */
+    -webkit-user-select: none;
+  }
+
+  /* Re-enable selection in text inputs and content areas */
+  input, textarea, [contenteditable], .selectable {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+
+  /* Tauri: drag the window by the custom titlebar */
+  [data-tauri-drag-region] {
+    -webkit-app-region: drag;
+  }
+  [data-tauri-drag-region] button,
+  [data-tauri-drag-region] a {
+    -webkit-app-region: no-drag;
+  }
+
+  /* Smooth scrolling in scrollable panels */
+  .scroll-panel {
+    overflow-y: auto;
+    scroll-behavior: smooth;
+  }
+  .scroll-panel::-webkit-scrollbar       { width: 5px; }
+  .scroll-panel::-webkit-scrollbar-track { background: transparent; }
+  .scroll-panel::-webkit-scrollbar-thumb { @apply bg-surface-200 rounded-full; }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-surface-200 p-4;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 bg-primary-500 text-white text-sm font-medium rounded-xl
+           hover:bg-primary-600 active:scale-[0.98] transition-all
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply px-3 py-2 text-sm text-gray-500 rounded-xl
+           hover:bg-surface-100 hover:text-gray-800 transition-colors;
+  }
+
+  .priority-dot {
+    @apply w-2 h-2 rounded-full flex-shrink-0;
+  }
+  .priority-dot-HIGH   { @apply bg-red-400; }
+  .priority-dot-MEDIUM { @apply bg-amber-400; }
+  .priority-dot-LOW    { @apply bg-gray-300; }
+}
