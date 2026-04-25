@@ -99,14 +99,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: adhd-life-macos-dmg
-          path: apps/desktop/src-tauri/target/release/bundle/dmg/*.dmg
+          path: apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
           retention-days: 1
 
       - name: Upload macOS update bundles
         uses: actions/upload-artifact@v4
         with:
           name: adhd-life-macos-update
-          path: apps/desktop/src-tauri/target/release/bundle/macos/*.app.tar.gz*
+          path: apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app.tar.gz*
           retention-days: 1
 
   build-windows:
@@ -189,12 +189,10 @@ jobs:
           REPO="${{ github.repository }}"
           BASE="https://github.com/$REPO/releases/download/v$VERSION"
 
-          MAC_ARM_SIG=$(cat artifacts/adhd-life-macos-update/*aarch64.app.tar.gz.sig)
-          MAC_X64_SIG=$(cat artifacts/adhd-life-macos-update/*x64.app.tar.gz.sig)
+          MAC_SIG=$(cat artifacts/adhd-life-macos-update/*universal.app.tar.gz.sig)
           WIN_SIG=$(cat artifacts/adhd-life-windows-sig/*.exe.sig)
 
-          MAC_ARM_FILE=$(basename $(ls artifacts/adhd-life-macos-update/*aarch64.app.tar.gz))
-          MAC_X64_FILE=$(basename $(ls artifacts/adhd-life-macos-update/*x64.app.tar.gz))
+          MAC_FILE=$(basename $(ls artifacts/adhd-life-macos-update/*universal.app.tar.gz))
           WIN_FILE=$(basename $(ls artifacts/adhd-life-windows-exe/*.exe))
 
           cat > latest.json << ENDJSON
@@ -203,9 +201,9 @@ jobs:
             "notes": "See the release page for details.",
             "pub_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "platforms": {
-              "darwin-aarch64": { "signature": "$MAC_ARM_SIG", "url": "$BASE/$MAC_ARM_FILE" },
-              "darwin-x86_64":  { "signature": "$MAC_X64_SIG", "url": "$BASE/$MAC_X64_FILE" },
-              "windows-x86_64": { "signature": "$WIN_SIG",     "url": "$BASE/$WIN_FILE" }
+              "darwin-aarch64": { "signature": "$MAC_SIG", "url": "$BASE/$MAC_FILE" },
+              "darwin-x86_64":  { "signature": "$MAC_SIG", "url": "$BASE/$MAC_FILE" },
+              "windows-x86_64": { "signature": "$WIN_SIG", "url": "$BASE/$WIN_FILE" }
             }
           }
           ENDJSON
