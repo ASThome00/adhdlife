@@ -124,39 +124,11 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: adhd-life-windows-exe
-          path: apps/desktop/src-tauri/target/release/bundle/msi/*.exe
+          path: apps/desktop/src-tauri/target/release/bundle/nsis/*.exe
           retention-days: 1
 
-  build-android:
-    needs: determine-version
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Setup EAS CLI
-        run: npm i -g eas-cli
-
-      - name: Build Android (EAS)
-        run: eas build --platform android --profile preview --non-interactive
-        working-directory: apps/mobile
-        env:
-          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
-
   create-release:
-    needs: [determine-version, build-macos, build-windows, build-android]
+    needs: [determine-version, build-macos, build-windows]
     runs-on: ubuntu-latest
     if: inputs.create_release == true
     steps:
@@ -181,7 +153,6 @@ jobs:
 
             **Mobile:**
             - iOS: Built via EAS (check EAS dashboard)
-            - Android: Built via EAS (check EAS dashboard)
 
             [View on GitHub Actions](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
           files: |
