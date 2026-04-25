@@ -179,24 +179,26 @@ Always use `cn()` from `lib/utils.ts` for conditional Tailwind.
 
 ---
 
-## Desktop: Commands Reference
+## Commands Reference
 
 ```bash
-# From apps/desktop/
-pnpm dev       # Tauri dev server (hot reload)
-pnpm build     # Production build → .dmg (Mac) / .exe installer (Windows)
-pnpm vite:dev  # Frontend only (no Tauri shell, for pure UI work)
-pnpm typecheck
+# Development
+pnpm dev           # Start dev servers
 
-# From monorepo root
-pnpm dev:desktop
-pnpm build:desktop
+# Release (automated build + GitHub Release for all platforms)
+pnpm release 1.0.0  # Builds macOS, Windows, iOS, Android → creates GitHub Release
+
+# Frontend-only (if needed)
+cd apps/desktop && pnpm vite:dev  # Tauri frontend without shell
+pnpm typecheck                     # Type check all
 ```
 
-Prerequisites before first `pnpm dev`:
-1. Install Rust: https://rustup.rs
-2. macOS: `xcode-select --install`
-3. Windows: Install Visual Studio Build Tools + WebView2
+**Release process:** See [RELEASE.md](./RELEASE.md)
+
+Prerequisites:
+- Node 20+, pnpm 9+
+- `gh` CLI for releases: https://cli.github.com
+- `EAS_TOKEN` secret in GitHub repo (for mobile builds)
 
 ---
 

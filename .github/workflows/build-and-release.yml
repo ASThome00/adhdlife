@@ -1,0 +1,176 @@
+name: Build & Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (e.g., 1.0.0)'
+        required: true
+      create_release:
+        description: 'Create GitHub Release'
+        required: true
+        default: true
+        type: boolean
+
+env:
+  NODE_VERSION: '20'
+  RUST_VERSION: stable
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Cache cargo
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build macOS Desktop
+        run: pnpm build:desktop:mac
+        working-directory: apps/desktop
+
+      - name: Upload macOS Desktop artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: adhd-life-macos-dmg
+          path: apps/desktop/src-tauri/target/release/bundle/dmg/*.dmg
+          retention-days: 1
+
+      - name: Setup EAS CLI
+        run: npm i -g eas-cli
+
+      - name: Build iOS (EAS)
+        run: eas build --platform ios --profile preview --non-interactive
+        working-directory: apps/mobile
+        env:
+          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Cache cargo
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build Windows Desktop
+        run: pnpm build:desktop:windows
+        working-directory: apps/desktop
+
+      - name: Upload Windows Desktop artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: adhd-life-windows-exe
+          path: apps/desktop/src-tauri/target/release/bundle/msi/*.exe
+          retention-days: 1
+
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Setup EAS CLI
+        run: npm i -g eas-cli
+
+      - name: Build Android (EAS)
+        run: eas build --platform android --profile preview --non-interactive
+        working-directory: apps/mobile
+        env:
+          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
+
+  create-release:
+    needs: [build-macos, build-windows, build-android]
+    runs-on: ubuntu-latest
+    if: inputs.create_release == true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ inputs.version }}
+          name: ADHD Life v${{ inputs.version }}
+          body: |
+            ## Downloads
+
+            **Desktop:**
+            - macOS: `adhd-life-macos-dmg/*.dmg`
+            - Windows: `adhd-life-windows-exe/*.exe`
+
+            **Mobile:**
+            - iOS: Built via EAS (check EAS dashboard)
+            - Android: Built via EAS (check EAS dashboard)
+
+            [View on GitHub Actions](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          files: |
+            artifacts/adhd-life-macos-dmg/*
+            artifacts/adhd-life-windows-exe/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Success
+        run: |
+          echo "✅ Release v${{ inputs.version }} created!"
+          echo "📦 Download from: https://github.com/${{ github.repository }}/releases/tag/v${{ inputs.version }}"
