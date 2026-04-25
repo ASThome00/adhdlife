@@ -10,6 +10,7 @@ export default defineConfig(async () => ({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    dedupe: ['react', 'react-dom'],
   },
 
   // Tauri expects a fixed port during dev

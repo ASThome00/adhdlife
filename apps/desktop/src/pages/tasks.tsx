@@ -1,5 +1,5 @@
+import { PlaceholderPage } from '@/components/ui/placeholder-page'
+
 export function TasksPage() {
-  return (
-    <div className="p-8 text-gray-600">Tasks placeholder</div>
-  )
+  return <PlaceholderPage label="Tasks" />
 }

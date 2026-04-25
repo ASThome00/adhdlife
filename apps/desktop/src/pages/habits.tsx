@@ -1,5 +1,5 @@
+import { PlaceholderPage } from '@/components/ui/placeholder-page'
+
 export function HabitsPage() {
-  return (
-    <div className="p-8 text-gray-600">Habits placeholder</div>
-  )
+  return <PlaceholderPage label="Habits" />
 }
