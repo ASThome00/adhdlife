@@ -122,6 +122,8 @@ jobs:
     needs: [determine-version, build-macos, build-windows]
     runs-on: ubuntu-latest
     if: inputs.create_release == true
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
