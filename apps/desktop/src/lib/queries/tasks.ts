@@ -37,6 +37,7 @@ export interface CreateTaskInput {
   priority?:        Priority
   time_estimate_min?: number
   parent_task_id?:  string
+  is_focus_today?:  boolean
 }
 
 // ─── READS ────────────────────────────────────────────────────────────────────
@@ -141,8 +142,8 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
 
   await execute(`
     INSERT INTO tasks (id, title, notes, category_id, parent_task_id, due_date, due_time,
-                       priority, status, time_estimate_min, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                       priority, status, time_estimate_min, is_focus_today, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
   `, [
     id,
     input.title,
@@ -154,6 +155,7 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
     input.priority       ?? 'MEDIUM',
     status,
     input.time_estimate_min ?? null,
+    input.is_focus_today ? 1 : 0,
   ])
 
   return id

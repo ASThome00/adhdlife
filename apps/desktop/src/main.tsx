@@ -7,6 +7,15 @@ import { Toaster } from 'react-hot-toast'
 import { App } from './App'
 import './index.css'
 
+// Apply persisted theme before first paint so nothing flashes in the wrong palette.
+{
+  const saved = localStorage.getItem('adhd-theme')
+  const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+  const dark = saved ? saved === 'dark' : prefersDark
+  const root = document.getElementById('root')
+  if (dark && root) root.classList.add('dark')
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

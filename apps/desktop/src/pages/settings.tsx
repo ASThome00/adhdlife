@@ -1,5 +1,5 @@
+import { PlaceholderPage } from '@/components/ui/placeholder-page'
+
 export function SettingsPage() {
-  return (
-    <div className="p-8 text-gray-600">Settings placeholder</div>
-  )
+  return <PlaceholderPage label="Settings" />
 }
