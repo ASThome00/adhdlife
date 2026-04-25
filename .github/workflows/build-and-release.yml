@@ -192,6 +192,17 @@ jobs:
           $cfg.version = $v
           $cfg | ConvertTo-Json -Depth 32 | Set-Content apps/desktop/src-tauri/tauri.conf.json -Encoding utf8
 
+      - name: Clear previous bundle outputs
+        shell: pwsh
+        run: |
+          $bundlePath = "apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle"
+          if (Test-Path $bundlePath) {
+            Remove-Item -Path $bundlePath -Recurse -Force
+            Write-Host "Cleared $bundlePath"
+          } else {
+            Write-Host "No previous bundle dir found, skipping."
+          }
+
       - name: Build Windows Desktop
         run: pnpm build:desktop:windows
         working-directory: apps/desktop
@@ -205,8 +216,9 @@ jobs:
           $ErrorActionPreference = 'Stop'
           New-Item -ItemType Directory -Path dist-windows -Force | Out-Null
 
-          Write-Host "=== Bundle outputs under target/ ==="
-          $found = Get-ChildItem -Path apps/desktop/src-tauri/target -Recurse -Include *.exe,*.exe.sig -ErrorAction SilentlyContinue
+          Write-Host "=== Bundle outputs under target/*/bundle/ ==="
+          $found = Get-ChildItem -Path apps/desktop/src-tauri/target -Recurse -Include *.exe,*.exe.sig -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -match '\\bundle\\' }
           $found | Format-Table FullName -AutoSize | Out-String | Write-Host
 
           $exes = $found | Where-Object { $_.Name -like '*.exe' }
