@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Inbox, ListTodo, Flame, BookOpen, BarChart2, Settings } from 'lucide-react'
+import { LayoutDashboard, Inbox, ListTodo, Flame, BookOpen, Timer, BarChart2, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSettings } from '@/lib/hooks/use-data'
 
@@ -9,6 +9,7 @@ const NAV = [
   { to: '/tasks',   icon: ListTodo,        label: 'Tasks'         },
   { to: '/habits',  icon: Flame,           label: 'Habits'        },
   { to: '/reading', icon: BookOpen,        label: 'Reading'       },
+  { to: '/pomodoro', icon: Timer,          label: 'Pomodoro'      },
   { to: '/review',  icon: BarChart2,       label: 'Weekly Review' },
 ] as const
 

@@ -8,6 +8,7 @@ import { InboxPage }     from '@/pages/inbox'
 import { TasksPage }     from '@/pages/tasks'
 import { HabitsPage }    from '@/pages/habits'
 import { ReadingPage }   from '@/pages/reading'
+import { PomodoroPage }  from '@/pages/pomodoro'
 import { ReviewPage }    from '@/pages/review'
 import { SettingsPage }  from '@/pages/settings'
 
@@ -38,6 +39,7 @@ export function App() {
         <Route path="/tasks"    element={<TasksPage />}     />
         <Route path="/habits"   element={<HabitsPage />}    />
         <Route path="/reading"  element={<ReadingPage />}   />
+        <Route path="/pomodoro" element={<PomodoroPage />}  />
         <Route path="/review"   element={<ReviewPage />}    />
         <Route path="/settings" element={<SettingsPage />}  />
         <Route path="*"         element={<Navigate to="/" />} />
