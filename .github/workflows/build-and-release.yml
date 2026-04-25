@@ -183,11 +183,21 @@ jobs:
         with:
           path: artifacts
 
+      - name: List artifacts (debug)
+        run: find artifacts -type f | sort
+
       - name: Generate latest.json
         run: |
           VERSION="${{ needs.determine-version.outputs.version }}"
           REPO="${{ github.repository }}"
           BASE="https://github.com/$REPO/releases/download/v$VERSION"
+
+          if ! ls artifacts/adhd-life-macos-update/*universal.app.tar.gz.sig 1>/dev/null 2>&1; then
+            echo "ERROR: No .sig file found in adhd-life-macos-update."
+            echo "This means TAURI_SIGNING_PRIVATE_KEY is not set as a repo secret."
+            echo "Files present:"; ls -la artifacts/adhd-life-macos-update/ || true
+            exit 1
+          fi
 
           MAC_SIG=$(cat artifacts/adhd-life-macos-update/*universal.app.tar.gz.sig)
           WIN_SIG=$(cat artifacts/adhd-life-windows-sig/*.exe.sig)
