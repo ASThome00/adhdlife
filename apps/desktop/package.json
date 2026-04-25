@@ -8,7 +8,7 @@
     "dev:fresh":  "node scripts/reset-db.mjs && tauri dev",
     "reset-db":   "node scripts/reset-db.mjs",
     "build":      "tauri build",
-    "build:desktop:mac": "tauri build",
+    "build:desktop:mac": "tauri build --target universal-apple-darwin",
     "build:desktop:windows": "tauri build",
     "preview":    "vite preview",
     "vite:dev":   "vite",
