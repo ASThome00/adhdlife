@@ -77,15 +77,6 @@ jobs:
           path: apps/desktop/src-tauri/target/release/bundle/dmg/*.dmg
           retention-days: 1
 
-      - name: Setup EAS CLI
-        run: npm i -g eas-cli
-
-      - name: Build iOS (EAS)
-        run: eas build --platform ios --profile preview --non-interactive
-        working-directory: apps/mobile
-        env:
-          EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
-
   build-windows:
     needs: determine-version
     runs-on: windows-latest
@@ -147,12 +138,8 @@ jobs:
           body: |
             ## Downloads
 
-            **Desktop:**
             - macOS: `adhd-life-macos-dmg/*.dmg`
             - Windows: `adhd-life-windows-exe/*.exe`
-
-            **Mobile:**
-            - iOS: Built via EAS (check EAS dashboard)
 
             [View on GitHub Actions](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
           files: |
