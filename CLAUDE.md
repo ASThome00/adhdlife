@@ -221,143 +221,452 @@ Prerequisites:
 
 ---
 
-## Build Order — Desktop (follow this sequence)
+# ADHD Life — Claude Code Session Plan
+## Design Source of Truth
 
-### ✅ Phase 1 — Foundation (complete)
-All scaffolding, Tauri config, SQL migration, query layer, hooks, nav shell.
-
-### 🔲 Phase 2 — Daily Dashboard (build first)
-**This is the hero screen. Start here.**
-
-File: `src/pages/dashboard.tsx`
-
-Import and wire:
-```tsx
-const { data, isLoading } = useDashboard()
-```
-
-Components to build (all using existing skeleton components):
-- `<DashboardHeader>` — greeting from `getGreeting(settings.display_name)`, today's date,
-  completion counter "X done today" (calm, not gamified)
-- `<FocusTaskList>` — renders `data.focusTasks`, uses `<TaskCard>`, tap → `useCompleteTask()`
-- `<HabitCheckRow>` — renders `data.habits`, uses existing `habit-check-row.tsx`,
-  wire `useToggleHabit()`
-- `<OverdueCollapsible>` — renders `data.overdueTasks`, collapsed by default,
-  uses existing `overdue-collapsible.tsx`
-- `<UpcomingList>` — renders `data.upcomingToday`, simple task list
-- `<QuickAddFAB>` — floating `+` button, opens `<QuickAddModal>` — wire `useCreateTask()`
-
-Layout: two-column on wide screens (focus + habits left, upcoming + overdue right).
-Single column below 1100px.
-
-### 🔲 Phase 3 — Quick Add + Brain Dump
-
-**Quick Add Modal** (called from FAB on every page):
-- Auto-focused title input
-- Category picker: color dot grid from `useCategories()`
-- Due date row: Today / Tomorrow / This week / Custom (date picker)
-- Priority toggle: Low · Medium · High (pill buttons)
-- Submit on Enter, close on Escape
-- Wire to `useCreateTask()`
-
-**Inbox page** (`src/pages/inbox.tsx`):
-- Large textarea: "What's on your mind?"
-- "Dump it" button → `useBrainDump(rawText)`
-- Below: list of INBOX tasks from `useTasks({ status: 'INBOX' })`
-- Each task: inline category assign dropdown + due date → promotes to ACTIVE
-- Bulk select → bulk assign category / drop / snooze
-
-### 🔲 Phase 4 — Tasks & Categories
-
-**Tasks page** (`src/pages/tasks.tsx`):
-- Left panel: category list from `useCategories()`, click to filter
-- Main panel: filtered task list grouped by:
-  - Overdue · Today · This Week · Upcoming · Someday · Done
-- Each group is collapsible, count shown in header
-- Inline task actions: complete, snooze, drop, edit due date
-
-**Task Detail** — implement as a slide-over panel (not a new page):
-- Trigger: click task title anywhere in the app
-- Shows: title (editable), notes (editable), subtasks checklist,
-  due date, recurrence, priority, category, tags
-- Subtasks: `getSubtasks(taskId)`, add via inline input
-- Recurrence: frequency picker → INSERT into `recurrences` table
-
-### 🔲 Phase 5 — Habits
-
-**Habits page** (`src/pages/habits.tsx`):
-- Top: add new habit (name + color picker)
-- Grid: all habits, each showing streak + monthly consistency dots
-- Monthly grid: 30 days of `habit_logs`, green = completed, gray = missed, empty = no data
-- Streak display: current + longest, using `getStreakMessage()` from utils
-
-### 🔲 Phase 6 — Reading Tracker
-
-**Reading page** (`src/pages/reading.tsx`):
-- Three columns: To Read · Reading · Finished
-- Add book: title, author, genre, page count
-- "Currently Reading" shows progress bar (current_page / total_pages)
-- Update progress: click page count → number input inline
-- Finish: prompt for rating (1–5 stars) + notes
-
-### 🔲 Phase 7 — Weekly Review
-
-**Review page** (`src/pages/review.tsx`):
-- Stats for the past 7 days:
-  - Tasks completed vs. planned
-  - Habit consistency % per habit
-  - Category breakdown (simple bar chart or color blocks — no heavy charting lib)
-- "Carried over" list: tasks that were due this week, still not done
-- Input: "What are your top 3 priorities for next week?" (saved to `focus_days`)
-
-### 🔲 Phase 8 — Settings + Polish
-
-**Settings page** (`src/pages/settings.tsx`):
-- Display name (edit)
-- Theme: Light / Dark / System (apply `dark` class to `<html>`)
-- Daily focus limit (number input, default 5)
-- Category management: reorder (drag), rename, recolor, archive
-- Export data: dump all tables to JSON, trigger file save via `tauri-plugin-fs`
-
-**Polish:**
-- Dark mode: add `dark:` variants throughout, read `settings.theme`,
-  apply class to document root
-- Keyboard shortcuts: `N` = new task, `B` = brain dump, `Escape` = close modal
-- Window title: update to "ADHD Life — Today" etc. via `@tauri-apps/api/window`
+> **Before every session:** The visual design for this app lives in a Claude Design project.
+> All component styles, tokens, spacing, shadows, typography, and interaction patterns
+> must be pulled from there — do NOT invent new UI. The design file is the reference.
+>
+> **Design file location:** `design-reference/dashboard.html` (and supporting files
+> `design-reference/app-components.jsx`, `design-reference/dashboard-cards.jsx`,
+> `design-reference/pages.jsx`)
+>
+> Read CLAUDE.md for the full design token reference (colors, shadows, radii, typography).
+> The `## Design Reference` section of CLAUDE.md is the canonical spec extracted from the
+> design file — use it as your lookup table when writing component CSS.
 
 ---
 
-## Build Order — Mobile (Expo iOS + Android)
+## SESSION 4 — Tasks & Categories View
 
-Mobile mirrors the desktop feature set but with native patterns.
-`apps/mobile/lib/db.ts` already has the schema and two helper queries.
+**Goal:** The full task browser.
 
-### 🔲 Mobile Phase 2 — Today Screen
-File: `apps/mobile/app/(tabs)/index.tsx`
+```
+Read CLAUDE.md. Build the Tasks page.
 
-Use `getTodayTasks()` and `getHabitsWithTodayStatus()` from `lib/db.ts`.
-Layout: ScrollView with sections — Focus Tasks, Habits, Upcoming.
-Task completion: `UPDATE tasks SET status='DONE', completed_at=... WHERE id=?`
-Habit toggle: `INSERT OR REPLACE INTO habit_logs ...`
+File: apps/desktop/src/pages/tasks.tsx
 
-Add helper functions to `lib/db.ts` as needed — same SQL patterns as desktop.
+DESIGN REFERENCE:
+The Tasks page already has a working prototype in design-reference/pages.jsx — see the
+TasksPage() component. Copy the visual patterns exactly:
+- Two-panel layout with category sidebar (160px) + scrollable main area
+- Category sidebar: color dot + name + count badge, active state uses nav-active-bg/fg tokens
+- Task rows: reuse the .task-row class pattern with Cb checkbox, PrioDot, title, CatPill, due label
+- All card/border/shadow values from CLAUDE.md Design Reference section
+Do not invent new colors or spacing — use only CSS vars defined in index.css.
 
-### 🔲 Mobile Phase 3 — Inbox Tab
-File: `apps/mobile/app/(tabs)/inbox.tsx`
+Layout: two-panel (sidebar + main), similar to an email client.
 
-TextInput (multiline) + "Dump" button.
-On submit: split by newlines → bulk INSERT into tasks as INBOX status.
-Below: FlatList of INBOX tasks with swipe-to-categorize.
+LEFT PANEL (~220px, fixed):
+- "All Tasks" item at top (no filter)
+- Category list from useCategories()
+- Each item: color dot + name + active task count badge
+- Click to filter the main panel
+- "+ New Category" button at bottom → inline name + color picker form (8 preset swatches
+  matching the category colors defined in CLAUDE.md)
 
-### 🔲 Mobile Phase 4–6
-Follow same feature order as desktop. Each tab = one page.
-Use `expo-haptics` on task completion (satisfying tap feedback).
-Use React Native's built-in `Pressable` with scale animation for interactivity.
+MAIN PANEL (flex-grow, scrollable):
+- Heading: selected category name or "All Tasks" — Lora serif italic 19px
+- Tasks grouped into collapsible sections:
+    Overdue   — due_date < today, status not DONE/DROPPED
+    Today     — due_date = today
+    This Week — due_date within next 7 days
+    Upcoming  — due_date > 7 days
+    Someday   — no due_date, status = ACTIVE
+    Inbox     — status = INBOX (only shown in "All Tasks" view)
+- Each section header: DM Mono 11px uppercase label + count. Collapsed if count = 0.
+- Use getTasks() with appropriate filters per section.
 
-### 🔲 Mobile Phase 7 — Notifications
-`expo-notifications` is already installed.
-Schedule a daily morning reminder at a user-set time.
-Keep it gentle: "Good morning! Ready to plan your day?" — not "You have 12 overdue tasks."
+TASK ROW (use existing TaskRow component from components/ui/task-row.tsx):
+- Checkbox (complete) | Priority dot | Title | Category dot | Due date | "⋯" menu
+- "⋯" menu: Edit | Snooze 1 day | Snooze 1 week | Move to today | Drop
+- Click title → open TaskDetailPanel (slide-over from right)
+
+TASK DETAIL PANEL (slide-over, not a new page):
+- Slides in from right, overlays the main panel (not full-screen takeover)
+- Background: var(--bg-card), border-left: 1.5px solid var(--border)
+- Box-shadow: -4px 0 20px rgba(0,0,0,0.06)
+- Width: 360px
+- Fields: Title (editable, Lora serif), Notes (contenteditable, Geist),
+  Due date picker, Priority picker (LOW/MEDIUM/HIGH pills matching modal style),
+  Category picker (same pill pattern as QuickAddModal)
+- Subtasks checklist: list of child tasks, checkable, "+ Add subtask" inline input
+  Subtasks fetched with getSubtasks(taskId)
+- Recurrence: "Repeat" dropdown (Never / Daily / Weekly / Monthly / Yearly)
+  On select: INSERT into recurrences table
+- All edits call updateTask() on blur/change with optimistic update
+
+ADHD principles:
+- "Drop" not "Delete" — soft language
+- Snoozed tasks disappear from view (status=SNOOZED, snoozed_until set)
+- No confirmation dialogs for snooze/drop — undo toast for 3 seconds only
+- Undo toast style: var(--bg-card), border 1.5px solid var(--border),
+  box-shadow 3px 4px 0 var(--shadow), Geist 13px — matches card style
+```
+
+---
+
+## SESSION 5 — Habits
+
+**Goal:** Daily habit tracking with forgiving streaks.
+
+```
+Read CLAUDE.md. Build the Habits page.
+
+File: apps/desktop/src/pages/habits.tsx
+
+DESIGN REFERENCE:
+The Habits page prototype lives in design-reference/pages.jsx — see HabitsPage().
+The dashboard habit circles are in design-reference/dashboard-cards.jsx — see HabitsCard().
+Key patterns to replicate:
+- Habit card: .card class, Lora serif name, DM Mono streak numbers
+- Streak number color: #c9566e when active, var(--text-faint) when paused
+- 30-day dot grid: 18×18px dots, border-radius 4px, habit color + 'cc' opacity when done,
+  var(--bg-card-lite) background when missed, var(--border) border
+- Today's circle: .hcircle class — see index.css. Done state: background #c9566e,
+  border-color #b0435c, box-shadow 3px 3.5px 0 var(--habit-shadow)
+- Color swatch picker: 8 presets — use the category color values from CLAUDE.md
+
+TOP SECTION — Add new habit:
+- Inline form: name input (border-bottom only, no box, matches modal input style) +
+  color swatch picker (8 preset circles, click to select) + "Add" button (btn-primary class)
+- Calls createHabit() from lib/queries/habits-categories-books.ts
+
+HABITS GRID (one card per habit):
+- Habit name (Lora 600 15px) + color dot indicator
+- Today's checkbox circle (.hcircle) — large, satisfying click
+- Current streak: "🔥 12 days" in DM Mono, colored #c9566e
+- Longest streak: "Best: 34" in Geist 11px var(--text-muted)
+- 30-day consistency grid (dots as described above)
+- Motivational text from getStreakMessage(currentStreak) — Lora italic 12px var(--text-mono)
+
+STREAK RULE (implement correctly):
+- toggleHabitToday() in queries handles DB logic — call it, trust it
+- If streak = 0 but longest > 0: "Paused at X days — start again today!" (never shame)
+- If streak > 0: use getStreakMessage() from lib/utils.ts
+
+ARCHIVE:
+- "⋯" menu on each card: Edit name | Archive
+- Archived habits hidden (is_archived = 1)
+- No delete
+```
+
+---
+
+## SESSION 6 — Reading Tracker
+
+**Goal:** Track her med school reading and personal books.
+
+```
+Read CLAUDE.md. Build the Reading page.
+
+File: apps/desktop/src/pages/reading.tsx
+
+DESIGN REFERENCE:
+Prototype in design-reference/pages.jsx — see ReadingPage().
+Three-column kanban layout. Each column has a DM Mono 11px uppercase header.
+Book cards use .card class with padding 14px 16px.
+- Title: Lora 600 14px var(--text-primary)
+- Author: Geist 12px var(--text-muted)
+- Progress bar: height 4px, background var(--bg-card-lite), filled with #c9566e
+- Genre pill: same pill pattern as CategoryPill in app-components.jsx
+- Star rating: simple ★/☆ characters, color #c9566e for filled
+
+Layout: three columns — To Read | Currently Reading | Finished
+
+ADD BOOK button:
+- Top of "To Read" column — dashed border button (like the "+ add a task" button in
+  FocusTasksCard: 1.5px dashed var(--border), Lora italic, hover border #c9566e)
+- Opens modal (matches QuickAddModal style exactly): Title, Author, Genre, Page count
+- Calls createBook() from lib/queries/habits-categories-books.ts
+
+BOOK CARD status-specific content:
+  TO_READ: "Start reading" button → sets status=READING, started_at=now
+  READING: Progress bar + "Page N of M" (click page number = inline number input) +
+           "Mark finished" button (btn-primary)
+  FINISHED: Completion date (DM Mono 10px var(--text-muted)) +
+            Star rating (1–5, click to set, #c9566e filled) +
+            Notes snippet (Lora italic 12px, click to expand/edit)
+
+FINISH MODAL (matches .modal class):
+- Star rating: 5 interactive stars
+- Notes textarea (Lora italic, transparent background, no border box — matches brain dump)
+- On save: updateBook(id, { status: 'FINISHED', finished_at: now, rating, notes })
+```
+
+---
+
+## SESSION 7 — Weekly Review
+
+**Goal:** A guided, encouraging look back at the week.
+
+```
+Read CLAUDE.md. Build the Weekly Review page.
+
+File: apps/desktop/src/pages/review.tsx
+
+DESIGN REFERENCE:
+Prototype in design-reference/pages.jsx — see ReviewPage().
+Key patterns:
+- Stats row: 3-column grid of .card cards, DM Mono 26px stat value, Lora 13px label
+- Carried forward list: .task-row pattern with PrioDot, no checkbox needed
+- Priority inputs: Geist 13.5px, background var(--bg-card-lite), border 1.5px var(--input-border),
+  border-radius 8px — NOT border-bottom-only (this is a form field, not inline edit)
+- Category bar chart: pure CSS div widths, colored with each category's ink color,
+  height 8px, border-radius 4px — no chart libraries
+
+Fetch everything in a single query — add getWeeklyReviewData() to lib/queries/tasks.ts.
+
+STATS SECTION (matches existing design):
+- Tasks completed this week vs. planned (calm ratio display)
+- Habit consistency % per habit (small colored bar per habit)
+- Brain dumps cleared
+
+CARRIED OVER SECTION:
+- Tasks due this week still ACTIVE or INBOX
+- Each: title + original due date + category color dot
+- Action buttons (small, pill style): "Next week" | "Drop" | "Focus now"
+- No scary warnings
+
+NEXT WEEK SECTION:
+- "What are your top 3 priorities for next week?"
+- Three inputs (styled as form fields, not inline edits)
+- Saved to settings table (add next_week_priorities TEXT column via new migration)
+
+CATEGORY BREAKDOWN:
+- CSS-only proportional bars (div widths), no chart lib
+- Category name + color + completed task count
+
+TONE: Supportive friend reviewing the week, not a productivity judge.
+```
+
+---
+
+## SESSION 8 — Settings & Dark Mode
+
+**Goal:** User preferences + dark mode + data export.
+
+```
+Read CLAUDE.md. Build the Settings page and dark mode.
+
+File: apps/desktop/src/pages/settings.tsx
+
+DESIGN REFERENCE:
+Prototype in design-reference/pages.jsx — see SettingsPage().
+The updater UI (Check for Updates card) is ALREADY BUILT in settings.tsx — do not rebuild it.
+New sections to add around it, matching the design:
+- All cards use .card class
+- Section labels use DM Mono 11px uppercase pattern
+- Toggle switches use .toggle-sw class (see index.css)
+- Theme pills: same pill button pattern as priority/due-date pickers in QuickAddModal
+- Color swatches for category recolor: 8 preset circles, 24×24px, border-radius 50%,
+  selected state has border 2px solid that color + box-shadow 1px 1.5px 0 that color
+
+SECTIONS (build around existing updater card):
+
+Profile:
+- Display name (editable input, border-bottom-only style) → updateSettings({ display_name })
+- "Used for your morning greeting" — Geist 11px var(--text-faint)
+
+Appearance:
+- Theme: Light | Dark | System (three pill buttons, same pattern as priority picker)
+- On change: updateSettings({ theme }) AND apply dark class to document root
+- System: match prefers-color-scheme
+
+Focus:
+- Daily focus limit: DM Mono number input, color #c9566e, background var(--bg-card-lite)
+- → updateSettings({ daily_focus_limit })
+
+Categories:
+- List all from useCategories()
+- Drag to reorder: @dnd-kit/sortable
+- Rename: click name → inline input (border-bottom-only on focus)
+- Recolor: click dot → 8 color swatch picker popover
+- Archive toggle: .toggle-sw
+
+Data:
+- "Export my data" button (btn-primary style)
+- Fetch all tables → JSON → tauri-plugin-fs save dialog
+- Format: { tasks, habits, categories, books, settings }
+
+DARK MODE:
+All tokens already have dark equivalents — apply .dark to #root.
+Dark mode is triggered by the theme setting. On app startup in App.tsx,
+read settings.theme and apply the class immediately before first render
+to avoid flash of wrong theme.
+```
+
+---
+
+## SESSION 9 — Mobile: Today Screen + Inbox
+
+**Goal:** First two screens of the Expo mobile app.
+
+```
+Read CLAUDE.md. Build the first two screens of the Expo mobile app.
+
+DESIGN REFERENCE:
+The mobile app should use the same color tokens as the desktop — same hex values,
+same category colors, same primary #c9566e. Use NativeWind throughout.
+The design system is documented in CLAUDE.md under "Color tokens".
+
+The database layer is already written at apps/mobile/lib/db.ts.
+It exports: getDb(), getTodayTasks(), getHabitsWithTodayStatus()
+Add extra helper functions to that file as needed.
+
+--- TODAY SCREEN: apps/mobile/app/(tabs)/index.tsx ---
+
+SafeAreaView > ScrollView layout with sections:
+
+1. Header
+   - Greeting: time-based (Good morning/afternoon/evening), Lora serif italic
+   - Date: "Wednesday, April 23" — Geist 12px muted
+   - "X done today" — DM Mono, color #c9566e
+
+2. Habits row (horizontal ScrollView)
+   - Each habit: circle (filled = done: #c9566e bg, else dashed border #c9566e),
+     name below (Geist 11px muted), streak count (DM Mono 10px)
+   - Tap to toggle: INSERT OR REPLACE INTO habit_logs
+   - expo-haptics on toggle: ImpactFeedbackStyle.Light
+   - Circle size: 52px to match desktop hcircle
+
+3. Focus Tasks section header: DM Mono 11px uppercase "FOCUS" label
+   - Fetch WHERE is_focus_today=1 AND status != 'DONE'
+   - Task row: checkbox circle + title (Geist 500 14px) + category color dot
+   - Checkbox: 20×20px, border-radius 4px, border 1.5px #c9566e,
+     checked: bg #c9566e with white checkmark
+   - Tap: expo-haptics NotificationFeedbackType.Success, optimistic complete
+
+4. Also today section: same row format, different fetch filter
+
+5. FAB: position absolute bottom-right, 50px circle, bg #c9566e,
+   border 2px solid #96334d, box-shadow offset (match desktop fab)
+   Opens bottom sheet: title TextInput + "Add" button
+
+All fetching: useQuery from @tanstack/react-query wrapping sqlite helpers.
+
+--- INBOX SCREEN: apps/mobile/app/(tabs)/inbox.tsx ---
+
+Top: Multiline TextInput
+  placeholder="Brain dump — one thought per line"
+  Lora italic font, background #faf5ea (--bg-card-lite), borderRadius 12,
+  border 1.5px #e2d4c0 (--border), minHeight 120
+
+"Dump it" button: btn-primary style (#c9566e bg, #96334d border, border-radius 9)
+
+FlatList of INBOX tasks:
+  Row: title (Geist 500) + "Assign →" button (Lora italic, #a08060)
+  "Assign →" → bottom sheet with category list (color dot + name per row)
+  On assign: UPDATE tasks SET category_id=?, status='ACTIVE', optimistic remove
+
+Empty state: Lora italic 15px muted "You're all caught up! Dump anything new above."
+```
+
+---
+
+## SESSION 10 — Mobile: Remaining Tabs + Notifications
+
+**Goal:** Complete the mobile app.
+
+```
+Read CLAUDE.md. Complete the remaining Expo mobile screens.
+
+DESIGN REFERENCE:
+Same token system as desktop — same hex values, same typography scale (adjusted for
+native: Lora for headings/labels, system monospace for DM Mono equiv, SF Pro for Geist).
+Use NativeWind for all styles. See CLAUDE.md "Color tokens" section.
+
+--- TASKS TAB: apps/mobile/app/(tabs)/tasks.tsx ---
+
+Category filter pills at top (horizontal ScrollView).
+Pill style: border 1.5px solid color, bg color+'18' when selected, Geist 12px.
+Task list below, filtered by selected category.
+Group sections: Overdue / Today / This Week / Upcoming / Someday — DM Mono headers.
+Each task: swipe right → complete (haptics), swipe left → "Snooze" + "Drop" actions.
+Swipe action colors: complete = #0d7a54, drop = #96334d (soft red-rose, not bright red).
+react-native-gesture-handler for swipe (already installed).
+
+--- HABITS TAB: apps/mobile/app/(tabs)/habits.tsx ---
+
+Full page version of the Today habits row.
+Each habit: card (bg #fffef9, border 1.5px #e2d4c0, borderRadius 14,
+  shadow offset 3px 4px color #dfd0b8).
+30-day dot grid — same dot style as desktop (18×18, borderRadius 4).
+Tap today circle to toggle. Streak display with getStreakMessage equivalent.
+"+ New habit" bottom sheet.
+
+--- READING TAB: apps/mobile/app/(tabs)/reading.tsx ---
+
+Three pill tabs at top: To Read | Reading | Finished (same pill pattern).
+FlatList per tab.
+Book card: title (Lora 600), author (Geist 12px muted), progress bar for Reading
+  (height 4px, bg #e2d4c0, fill #c9566e).
+Tap → book detail modal (full-screen stack): all fields, progress update, rating.
+
+--- NOTIFICATIONS ---
+
+File: apps/mobile/lib/notifications.ts
+
+expo-notifications (already installed).
+scheduleMorningReminder(hour: number, minute: number):
+  Cancel existing → schedule daily repeating.
+  Message: "Good morning! Ready to see your day?" — calm, no task counts.
+
+Settings modal: apps/mobile/app/settings.tsx (presentation: 'modal').
+Display name, notification time picker, theme toggle.
+Store in SQLite settings table (add notifications_time TEXT + theme TEXT columns).
+Access via gear icon in Today screen header.
+```
+
+---
+
+## After all sessions — Building installers
+
+### macOS (.dmg)
+```bash
+cd apps/desktop && pnpm build
+# Output: src-tauri/target/release/bundle/dmg/ADHD Life_0.1.0_x64.dmg
+```
+
+### Windows (.exe installer)
+```bash
+# On a Windows machine:
+cd apps/desktop && pnpm build
+# Output: src-tauri/target/release/bundle/nsis/ADHD Life_0.1.0_x64-setup.exe
+```
+
+### iOS (via Expo)
+```bash
+cd apps/mobile
+npm install -g eas-cli && eas login
+eas build --platform ios --profile preview
+```
+
+### Android (via Expo)
+```bash
+cd apps/mobile
+eas build --platform android --profile preview
+```
+
+---
+
+## Quick reference
+
+| Thing | Location |
+|---|---|
+| **Design file** | `design-reference/dashboard.html` |
+| **Design tokens** | `CLAUDE.md` → "Design Reference" section |
+| **SQLite schema** | `apps/desktop/src-tauri/migrations/001_initial.sql` |
+| **Desktop DB queries** | `apps/desktop/src/lib/queries/` |
+| **Desktop hooks** | `apps/desktop/src/lib/hooks/use-data.ts` |
+| **Desktop pages** | `apps/desktop/src/pages/` |
+| **Desktop components** | `apps/desktop/src/components/` |
+| **Mobile DB** | `apps/mobile/lib/db.ts` |
+| **Mobile screens** | `apps/mobile/app/(tabs)/` |
+| **Shared types** | `packages/types/src/index.ts` |
+| **ADHD Design Laws** | `CLAUDE.md` → "ADHD Design Laws" section |
+
 
 ---
 

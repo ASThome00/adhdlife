@@ -5,8 +5,12 @@ pnpm-lock.yaml
 .pnp.js
 .pnpm-store/
 
-# Turbo
+# Turbo cache
 .turbo/
+
+# SWC cache
+.swc/
+.swcrc
 
 # Tauri (Rust backend)
 apps/desktop/src-tauri/target/
@@ -24,6 +28,9 @@ out/
 *.exe
 *.msi
 *.app/
+
+# Design reference (local design files — not part of source)
+design-reference/
 
 # Expo / React Native
 apps/mobile/.expo/
