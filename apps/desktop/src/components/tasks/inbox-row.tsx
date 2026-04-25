@@ -82,6 +82,23 @@ export function InboxRow({ task, categories, selected, onToggleSelect, onAssignC
                 </button>
               )
             })}
+            <button
+              type="button"
+              onClick={e => { e.stopPropagation(); setCatPickerOpen(false) }}
+              style={{
+                padding: '3px 8px',
+                borderRadius: 6,
+                border: '1.5px solid var(--border)',
+                background: 'transparent',
+                color: 'var(--text-faint)',
+                fontFamily: 'Lora, serif',
+                fontStyle: 'italic',
+                fontSize: 12,
+                cursor: 'pointer',
+              }}
+            >
+              cancel
+            </button>
           </div>
         ) : (
           <button

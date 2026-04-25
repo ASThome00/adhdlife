@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import toast from 'react-hot-toast'
 import { useBrainDump, useTasks, useUpdateTask, useCategories } from '@/lib/hooks/use-data'
 import { getCategoryTheme } from '@/lib/category-colors'
 import { InboxRow } from '@/components/tasks/inbox-row'
@@ -99,6 +100,8 @@ export function InboxPage() {
     }
     setSelectedIds(new Set())
     setBulkMode(null)
+    const label = sel === 'today' ? 'Today' : sel === 'tomorrow' ? 'Tomorrow' : 'This week'
+    toast.success(`Due date set to ${label}`)
   }
 
   const isMac = navigator.platform?.includes('Mac')

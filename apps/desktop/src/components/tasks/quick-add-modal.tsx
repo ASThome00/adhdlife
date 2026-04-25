@@ -73,17 +73,13 @@ export function QuickAddModal() {
     return () => window.removeEventListener('keydown', onKey)
   }, [open, close])
 
-  async function submit() {
+  function submit() {
     const t = title.trim()
     if (!t) return
-    await createTask.mutateAsync({
-      title: t,
-      category_id: selCat ?? undefined,
-      priority: selPrio,
-      due_date: getDueDate(selDue),
-      is_focus_today: isFocusToday,
-    })
-    close()
+    createTask.mutate(
+      { title: t, category_id: selCat ?? undefined, priority: selPrio, due_date: getDueDate(selDue), is_focus_today: isFocusToday },
+      { onSuccess: close }
+    )
   }
 
   return (
