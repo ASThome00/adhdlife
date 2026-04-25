@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useCreateTask, useCategories } from '@/lib/hooks/use-data'
 import { useQuickAdd } from '@/lib/stores/quick-add'
-import { getCategoryTheme, PRIO } from '@/lib/category-colors'
+import { getCategoryTheme } from '@/lib/category-colors'
 import type { Priority } from '@/lib/queries/tasks'
 
 const PRIO_OPTIONS: Array<{ k: Priority; label: string }> = [
@@ -10,6 +10,32 @@ const PRIO_OPTIONS: Array<{ k: Priority; label: string }> = [
   { k: 'MEDIUM', label: 'Med'  },
   { k: 'HIGH',   label: 'High' },
 ]
+
+const MODAL_PRIO_COLORS: Record<Priority, string> = {
+  LOW:    '#a08060',
+  MEDIUM: '#c9566e',
+  HIGH:   '#96334d',
+}
+
+type DueSel = 'today' | 'tomorrow' | 'week' | null
+
+const DUE_OPTIONS: Array<{ k: DueSel; label: string }> = [
+  { k: 'today',    label: 'Today'     },
+  { k: 'tomorrow', label: 'Tomorrow'  },
+  { k: 'week',     label: 'This week' },
+  { k: null,       label: 'None'      },
+]
+
+function getDueDate(sel: DueSel): Date | undefined {
+  if (!sel) return undefined
+  const d = new Date()
+  if (sel === 'today')    { d.setHours(23, 59, 59, 999); return d }
+  if (sel === 'tomorrow') { d.setDate(d.getDate() + 1); d.setHours(23, 59, 59, 999); return d }
+  const daysUntilFriday = ((5 - d.getDay()) + 7) % 7 || 7
+  d.setDate(d.getDate() + daysUntilFriday)
+  d.setHours(23, 59, 59, 999)
+  return d
+}
 
 export function QuickAddModal() {
   const open         = useQuickAdd(s => s.open)
@@ -23,6 +49,7 @@ export function QuickAddModal() {
   const [title,   setTitle]   = useState('')
   const [selCat,  setSelCat]  = useState<string | null>(null)
   const [selPrio, setSelPrio] = useState<Priority>('MEDIUM')
+  const [selDue,  setSelDue]  = useState<DueSel>(null)
 
   // Reset form whenever the modal opens
   useEffect(() => {
@@ -30,6 +57,7 @@ export function QuickAddModal() {
       setTitle('')
       setSelCat(null)
       setSelPrio('MEDIUM')
+      setSelDue(null)
       // Autofocus input next tick
       setTimeout(() => inputRef.current?.focus(), 0)
     }
@@ -52,6 +80,7 @@ export function QuickAddModal() {
       title: t,
       category_id: selCat ?? undefined,
       priority: selPrio,
+      due_date: getDueDate(selDue),
       is_focus_today: isFocusToday,
     })
     close()
@@ -137,12 +166,44 @@ export function QuickAddModal() {
               </div>
             </div>
 
+            {/* Due date */}
+            <div style={{ marginTop: 14 }}>
+              <div style={sectionLabel}>Due date</div>
+              <div style={{ display: 'flex', gap: 6 }}>
+                {DUE_OPTIONS.map(({ k, label }) => {
+                  const selected = selDue === k
+                  return (
+                    <button
+                      key={String(k)}
+                      type="button"
+                      onClick={() => setSelDue(k)}
+                      style={{
+                        padding: '5px 11px',
+                        borderRadius: 7,
+                        fontFamily: 'Geist, sans-serif',
+                        fontSize: 12,
+                        fontWeight: selected ? 600 : 400,
+                        cursor: 'pointer',
+                        border: `1.5px solid ${selected ? 'var(--pill-border)' : 'var(--border)'}`,
+                        background: selected ? 'var(--bg-accent)' : 'transparent',
+                        color: selected ? 'var(--text-accent)' : 'var(--text-mono)',
+                        transition: 'all 0.12s',
+                      }}
+                    >
+                      {label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
             {/* Priority */}
             <div style={{ marginTop: 14 }}>
               <div style={sectionLabel}>Priority</div>
               <div style={{ display: 'flex', gap: 6 }}>
                 {PRIO_OPTIONS.map(({ k, label }) => {
                   const selected = selPrio === k
+                  const color = MODAL_PRIO_COLORS[k]
                   return (
                     <button
                       key={k}
@@ -155,9 +216,9 @@ export function QuickAddModal() {
                         fontSize: 12,
                         fontWeight: selected ? 600 : 400,
                         cursor: 'pointer',
-                        border: `1.5px solid ${selected ? PRIO[k] : PRIO[k] + '44'}`,
-                        background: selected ? PRIO[k] + '18' : 'transparent',
-                        color: selected ? PRIO[k] : 'var(--text-sidebar)',
+                        border: `1.5px solid ${selected ? color : color + '44'}`,
+                        background: selected ? color + '18' : 'transparent',
+                        color: selected ? color : 'var(--text-sidebar)',
                         transition: 'all 0.12s',
                       }}
                     >

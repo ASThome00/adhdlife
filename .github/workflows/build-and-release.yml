@@ -3,8 +3,17 @@ name: Build & Release
 on:
   workflow_dispatch:
     inputs:
+      bump_type:
+        description: 'Which part of the version to increment'
+        required: true
+        default: patch
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
       version:
-        description: 'Version (e.g., 1.0.0). If not provided, reads from VERSION file'
+        description: 'Override version (e.g., 2.0.0). Skips auto-increment if provided.'
         required: false
       create_release:
         description: 'Create GitHub Release'
@@ -28,11 +37,18 @@ jobs:
         id: version
         run: |
           if [ -z "${{ inputs.version }}" ]; then
-            VERSION=$(cat VERSION)
-            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            CURRENT=$(cat VERSION | tr -d '[:space:]')
+            IFS='.' read -r major minor patch <<< "$CURRENT"
+            case "${{ inputs.bump_type }}" in
+              major) major=$((major + 1)); minor=0; patch=0 ;;
+              minor) minor=$((minor + 1)); patch=0 ;;
+              *)     patch=$((patch + 1)) ;;
+            esac
+            VERSION="$major.$minor.$patch"
           else
-            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            VERSION="${{ inputs.version }}"
           fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
   build-macos:
     needs: determine-version
@@ -63,6 +79,13 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+
+      - name: Set app version
+        run: |
+          VERSION="${{ needs.determine-version.outputs.version }}"
+          jq --arg v "$VERSION" '.version = $v' \
+            apps/desktop/src-tauri/tauri.conf.json > tmp.json
+          mv tmp.json apps/desktop/src-tauri/tauri.conf.json
 
       - name: Build macOS Desktop
         run: pnpm build:desktop:mac
@@ -116,10 +139,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Set app version
+        shell: pwsh
+        run: |
+          $v = "${{ needs.determine-version.outputs.version }}"
+          $cfg = Get-Content apps/desktop/src-tauri/tauri.conf.json | ConvertFrom-Json
+          $cfg.version = $v
+          $cfg | ConvertTo-Json -Depth 20 | Set-Content apps/desktop/src-tauri/tauri.conf.json
+
       - name: Build Windows Desktop
         run: pnpm build:desktop:windows
         working-directory: apps/desktop
         env:
+          VERSION: ${{ needs.determine-version.outputs.version }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
 
@@ -200,6 +232,24 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Bump version files and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          V="${{ needs.determine-version.outputs.version }}"
+          echo "$V" > VERSION
+          jq --arg v "$V" '.version = $v' \
+            apps/desktop/src-tauri/tauri.conf.json > tmp.json && mv tmp.json apps/desktop/src-tauri/tauri.conf.json
+          sed -i "0,/^version = /s/^version = \"[^\"]*\"/version = \"$V\"/" \
+            apps/desktop/src-tauri/Cargo.toml
+          jq --arg v "$V" '.version = $v' \
+            apps/desktop/package.json > tmp.json && mv tmp.json apps/desktop/package.json
+          git add VERSION apps/desktop/src-tauri/tauri.conf.json \
+                    apps/desktop/src-tauri/Cargo.toml apps/desktop/package.json
+          git diff --staged --quiet || \
+            git commit -m "chore: bump version to $V [skip ci]"
+          git push
 
       - name: Success
         run: |
