@@ -162,7 +162,7 @@ export async function createTask(input: CreateTaskInput): Promise<string> {
 }
 
 export async function brainDump(rawText: string): Promise<number> {
-  const lines = rawText.split(/[\n,]+/).map(l => l.trim()).filter(Boolean)
+  const lines = rawText.split(/\n+/).map(l => l.trim()).filter(Boolean)
   for (const title of lines) {
     await createTask({ title })
   }

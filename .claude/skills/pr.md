@@ -1,41 +1,38 @@
-# Pull Request Skill
+Create a pull request for the current branch.
 
-Create well-documented pull requests with comprehensive descriptions.
+1. Run these in parallel using Bash:
+   - `git status` to see uncommitted changes
+   - `git log main..HEAD --oneline` to list commits on this branch
+   - `git diff main...HEAD` to see all changes
 
-## Usage
+2. Analyze every commit included in the branch (not just the latest). Understand what changed and why.
+
+3. Draft a PR title (≤70 chars, present tense, e.g. "Add quick-add modal with category picker").
+
+4. Create the PR with `gh pr create` using a HEREDOC for the body:
+
 ```
-/pr
-```
-
-## Behavior
-1. Analyze commits since branching from main
-2. Generate a descriptive PR title
-3. Create detailed description with:
-   - Summary of changes
-   - Testing instructions
-   - Screenshots (if UI changes)
-4. Create PR via `gh pr create`
-
-## PR Template
-```markdown
+gh pr create --title "<title>" --body "$(cat <<'EOF'
 ## Summary
-Brief description of changes
+<1–3 bullet points describing what changed and why>
 
 ## Changes
-- List of specific changes made
+<specific list of files / components changed>
 
 ## Testing
-How to test these changes
+<steps to verify the feature works — golden path + edge cases>
 
 ## Screenshots
-(if applicable)
-
-## Checklist
-- [ ] Tests pass
-- [ ] Documentation updated
-- [ ] No breaking changes
+<note "UI changes — see description" or omit if backend-only>
+EOF
+)"
 ```
 
-## Requirements
-- GitHub CLI (`gh`) installed and authenticated
-- On a feature branch (not main)
+5. Return the PR URL so the user can open it.
+
+Rules:
+- Never push to main directly — warn the user if they are on main.
+- If the branch has no remote tracking branch, push it first with `git push -u origin HEAD`.
+- Do not amend commits or force-push.
+- If `gh` is not authenticated, tell the user to run `gh auth login` and stop.
+- Do NOT include any AI attribution anywhere — no "Generated with Claude Code", no "Co-Authored-By: Claude", no "Co-Authored-By: Anthropic", no mention of AI, Claude, or Anthropic in the PR title, body, commit messages, or any git metadata. Write everything as if a human authored it.

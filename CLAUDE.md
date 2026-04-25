@@ -386,4 +386,225 @@ Keep it gentle: "Good morning! Ready to plan your day?" — not "You have 12 ove
 
 ---
 
+# Design Reference
+
+## Source of truth
+
+All UI in this project must match the visual language defined in `design-reference/dashboard.html`.
+Read that file before building any new component or page. The supporting component files are:
+
+- `design-reference/app-components.jsx` — icons, shared primitives
+- `design-reference/dashboard-cards.jsx` — card components, task rows, habit circles
+- `design-reference/pages.jsx` — full page layouts
+
+---
+
+## Typography
+
+| Role | Font | Size | Weight | Notes |
+|---|---|---|---|---|
+| UI / body | `'Geist', system-ui, sans-serif` | 13–15px | 400–600 | Default for all interactive elements |
+| Headings / modal titles | `'Lora', serif` | 14–15px | 600 | Card titles, modal headers |
+| Section labels | `'DM Mono', monospace` | 11px | 400–500 | Uppercase, letter-spacing: 0.06em |
+| Cancel / ghost actions | `'Lora', serif` | 13px | 400 | font-style: italic |
+| Placeholder text | `'Lora', serif` | — | 400 | font-style: italic |
+
+---
+
+## Color tokens
+
+Use CSS variables exclusively — never hardcode a color that has a token equivalent.
+The full token set (light + dark) lives in the `<style>` block of `dashboard.html`.
+
+| Token | Light value | Purpose |
+|---|---|---|
+| `--bg-page` | `#fdf6ed` | Page background |
+| `--bg-card` | `#fffef9` | Card / modal background |
+| `--bg-card-lite` | `#faf5ea` | Subtle card variant |
+| `--bg-hover` | `#fdf0df` | Row hover state |
+| `--border` | `#e2d4c0` | Default border |
+| `--text-primary` | `#2d1f14` | Headings, strong text |
+| `--text-body` | `#3d2b1a` | Body copy |
+| `--text-muted` | `#a08060` | Secondary labels |
+| `--text-faint` | `#c4a882` | Placeholders, disabled |
+| `--text-mono` | `#b89c80` | DM Mono labels |
+| `--shadow` | `#dfd0b8` | Flat offset shadow color |
+| `--input-border` | `#e2d4c0` | Input border (bottom only) |
+| `--modal-overlay` | `rgba(45,31,20,0.28)` | Modal backdrop |
+
+Named accent values (use directly, not as vars):
+
+| Name | Value | Usage |
+|---|---|---|
+| Primary | `#c9566e` | Buttons, active dots, FAB, checked states |
+| Primary border | `#96334d` | Border + shadow on primary buttons |
+| Primary wash | `#c9566e18` | Selected pill background |
+
+Priority colors: Low `#a08060` · Medium `#c9566e` · High `#96334d`
+
+---
+
+## Shadows
+
+All shadows are **flat offset** (no blur). Never use `box-shadow` with a blur radius for UI chrome.
+
+| Context | Value |
+|---|---|
+| Small card / pill | `2px 2.5px 0px var(--shadow)` |
+| Standard card | `3px 4px 0px var(--shadow)` |
+| Modal | `5px 6px 0px var(--shadow)` |
+| Primary button | `2px 2.5px 0 #96334d` |
+| Accent shadow (checked checkbox, habit) | `1px 1.5px 0px var(--check-shadow)` |
+
+Active state: shift shadow down — use `transform: translate(2px, 2px)` + reduce shadow.
+
+---
+
+## Border radii
+
+| Element | Radius |
+|---|---|
+| Modal | 16px |
+| Card | 14px |
+| Card lite | 10px |
+| Button / pill | 7–9px |
+| Nav item | 9px |
+| Checkbox | 4px |
+| Toggle track | 9px |
+
+---
+
+## Component patterns
+
+### Cards
+```css
+background: var(--bg-card);
+border-radius: 14px;
+border: 1.5px solid var(--border);
+box-shadow: 3px 4px 0px var(--shadow);
+padding: 20px 22px;
+```
+Card title: Lora 600 14px `var(--text-primary)`. DM Mono count/meta flush right.
+
+### Pill buttons (category / priority / due date)
+Two states only:
+
+```css
+/* Unselected */
+background: transparent;
+border: 1.5px solid {color}44;
+color: var(--text-sidebar);
+font-weight: 400;
+
+/* Selected */
+background: {color}18;
+border: 1.5px solid {color};
+color: {color};
+font-weight: 600;
+```
+Font: Geist 12px. Border-radius: 7px. Padding: 4px 9px. Transition: all 0.12s.
+
+### Primary action button
+```css
+background: #c9566e;
+border: 2px solid #96334d;
+border-radius: 9px;
+box-shadow: 2px 2.5px 0 #96334d;
+color: white;
+font-family: 'Geist', sans-serif;
+font-size: 13px;
+font-weight: 600;
+padding: 7px 18px;
+```
+Disabled: `background: var(--bg-card-lite)`, `border: var(--border)`, `color: var(--text-faint)`, no shadow.
+
+### Inputs
+Border-bottom only. No full border, no background fill.
+```css
+border: none;
+border-bottom: 1.5px solid var(--input-border);
+background: transparent;
+font-family: 'Geist', sans-serif;
+font-size: 15px;
+color: var(--text-primary);
+padding: 8px 0;
+outline: none;
+```
+Focus: `border-bottom-color: #c9566e`. Placeholder: Lora italic `var(--text-faint)`.
+
+### Task rows
+```css
+display: flex;
+align-items: center;
+gap: 9px;
+padding: 8px 5px;
+border-bottom: 1px solid var(--task-border);
+border-radius: 7px;
+transition: background 0.12s;
+```
+Hover: `background: var(--bg-hover)`. Last row: no border-bottom.
+
+### Modals
+```css
+background: var(--bg-card);
+border: 1.5px solid var(--border);
+border-radius: 16px;
+box-shadow: 5px 6px 0px var(--shadow);
+padding: 24px;
+max-width: 420px;
+```
+Overlay: `background: var(--modal-overlay)` + `backdrop-filter: blur(3px)`.
+
+Enter animation (Framer Motion or CSS keyframe):
+```
+opacity: 0 → 1, scale: 0.96 → 1, translateY: 8px → 0
+duration: 0.18s, easing: ease
+```
+
+### Section labels (inside modals / forms)
+```css
+font-family: 'DM Mono', monospace;
+font-size: 11px;
+color: var(--text-mono);
+font-weight: 600;
+letter-spacing: 0.06em;
+text-transform: uppercase;
+margin-bottom: 8px;
+```
+
+### Checkboxes
+```css
+width: 18px; height: 18px;
+border-radius: 4px;
+border: 1.5px solid var(--text-faint);
+```
+Checked: `background: #c9566e`, `border-color: #b0435c`, `box-shadow: 1px 1.5px 0 var(--check-shadow)`.
+
+---
+
+## Transitions
+
+All interactive elements: `transition: all 0.12s` to `transition: all 0.2s`.  
+Never use transitions longer than 0.3s for UI chrome.  
+Theme (bg/color changes): 0.3s.
+
+---
+
+## Dark mode
+
+Apply via `.dark` class on `#root`. All tokens have dark equivalents in `dashboard.html`.
+Never hardcode light-only values — always use a CSS var so dark mode works for free.
+
+---
+
+## Do not
+
+- Use blur-radius box-shadows for cards or modals
+- Invent colors not in the token set (use oklch only if a genuinely new hue is needed)
+- Use Inter, Roboto, or system fonts — always load Geist + Lora + DM Mono from Google Fonts
+- Use emoji in UI chrome
+- Add gradient backgrounds
+- Use rounded-corner containers with a left-border accent (common AI trope — avoid)
+
+
 *Built with love by Andrew, for his wife. 💜*
