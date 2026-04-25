@@ -8,6 +8,6 @@
     "sql:default",
     "sql:allow-execute",
     "updater:default",
-    "core:process:allow-relaunch"
+    "process:allow-restart"
   ]
 }
