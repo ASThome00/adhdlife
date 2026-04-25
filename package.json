@@ -7,6 +7,7 @@
   ],
   "scripts": {
     "dev": "turbo run dev",
+    "dev:fresh": "node apps/desktop/scripts/reset-db.mjs && turbo run dev --filter=desktop",
     "dev:mobile": "turbo run dev --filter=mobile",
     "release": "node scripts/build.js",
     "lint": "turbo run lint",

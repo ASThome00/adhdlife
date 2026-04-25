@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
-import { check, type Update } from '@tauri-apps/plugin-updater'
+import { check, type Update, type DownloadEvent } from '@tauri-apps/plugin-updater'
 import { relaunch } from '@tauri-apps/plugin-process'
 import { getVersion } from '@tauri-apps/api/app'
 import { RefreshCw, CheckCircle2, Download, RotateCcw, AlertCircle } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 type UpdateState =
   | { status: 'idle' }
@@ -43,7 +42,7 @@ export function SettingsPage() {
     try {
       let downloaded = 0
       let total = 0
-      await update.download((event) => {
+      await update.download((event: DownloadEvent) => {
         if (event.event === 'Started') {
           total = event.data.contentLength ?? 0
         } else if (event.event === 'Progress') {
