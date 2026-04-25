@@ -26,6 +26,10 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         // Notifications plugin — for gentle reminders (Phase 7)
         .plugin(tauri_plugin_notification::init())
+        // Updater plugin — checks GitHub Releases for new versions
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        // Process plugin — needed for relaunch after installing an update
+        .plugin(tauri_plugin_process::init())
         // Set up the main window
         .setup(|app| {
             #[cfg(debug_assertions)]
