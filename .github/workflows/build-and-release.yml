@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version (e.g., 1.0.0)'
-        required: true
+        description: 'Version (e.g., 1.0.0). If not provided, reads from VERSION file'
+        required: false
       create_release:
         description: 'Create GitHub Release'
         required: true
@@ -17,7 +17,25 @@ env:
   RUST_VERSION: stable
 
 jobs:
+  determine-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ -z "${{ inputs.version }}" ]; then
+            VERSION=$(cat VERSION)
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
   build-macos:
+    needs: determine-version
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,6 +67,8 @@ jobs:
       - name: Build macOS Desktop
         run: pnpm build:desktop:mac
         working-directory: apps/desktop
+        env:
+          VERSION: ${{ needs.determine-version.outputs.version }}
 
       - name: Upload macOS Desktop artifact
         uses: actions/upload-artifact@v4
@@ -67,6 +87,7 @@ jobs:
           EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
 
   build-windows:
+    needs: determine-version
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -107,6 +128,7 @@ jobs:
           retention-days: 1
 
   build-android:
+    needs: determine-version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -134,7 +156,7 @@ jobs:
           EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
 
   create-release:
-    needs: [build-macos, build-windows, build-android]
+    needs: [determine-version, build-macos, build-windows, build-android]
     runs-on: ubuntu-latest
     if: inputs.create_release == true
     steps:
@@ -148,8 +170,8 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ inputs.version }}
-          name: ADHD Life v${{ inputs.version }}
+          tag_name: v${{ needs.determine-version.outputs.version }}
+          name: ADHD Life v${{ needs.determine-version.outputs.version }}
           body: |
             ## Downloads
 
@@ -172,5 +194,5 @@ jobs:
 
       - name: Success
         run: |
-          echo "✅ Release v${{ inputs.version }} created!"
-          echo "📦 Download from: https://github.com/${{ github.repository }}/releases/tag/v${{ inputs.version }}"
+          echo "✅ Release v${{ needs.determine-version.outputs.version }} created!"
+          echo "📦 Download from: https://github.com/${{ github.repository }}/releases/tag/v${{ needs.determine-version.outputs.version }}"
