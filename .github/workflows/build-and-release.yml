@@ -195,12 +195,14 @@ jobs:
       - name: Clear previous bundle outputs
         shell: pwsh
         run: |
-          $bundlePath = "apps/desktop/src-tauri/target/x86_64-pc-windows-msvc/release/bundle"
-          if (Test-Path $bundlePath) {
-            Remove-Item -Path $bundlePath -Recurse -Force
-            Write-Host "Cleared $bundlePath"
+          $bundles = Get-ChildItem -Path apps/desktop/src-tauri/target -Recurse -Directory -Filter bundle -ErrorAction SilentlyContinue
+          if ($bundles) {
+            $bundles | ForEach-Object {
+              Write-Host "Removing $($_.FullName)"
+              Remove-Item $_.FullName -Recurse -Force
+            }
           } else {
-            Write-Host "No previous bundle dir found, skipping."
+            Write-Host "No bundle dirs found, skipping."
           }
 
       - name: Build Windows Desktop
