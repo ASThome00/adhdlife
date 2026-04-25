@@ -99,14 +99,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: adhd-life-macos-dmg
-          path: apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          path: apps/desktop/src-tauri/target/release/bundle/dmg/*.dmg
+          if-no-files-found: error
           retention-days: 1
 
       - name: Upload macOS update bundles
         uses: actions/upload-artifact@v4
         with:
           name: adhd-life-macos-update
-          path: apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/macos/*.app.tar.gz*
+          path: apps/desktop/src-tauri/target/release/bundle/macos/*.app.tar.gz*
+          if-no-files-found: error
           retention-days: 1
 
   build-windows:
@@ -192,17 +194,17 @@ jobs:
           REPO="${{ github.repository }}"
           BASE="https://github.com/$REPO/releases/download/v$VERSION"
 
-          if ! ls artifacts/adhd-life-macos-update/*universal.app.tar.gz.sig 1>/dev/null 2>&1; then
+          if ! ls artifacts/adhd-life-macos-update/*.app.tar.gz.sig 1>/dev/null 2>&1; then
             echo "ERROR: No .sig file found in adhd-life-macos-update."
-            echo "This means TAURI_SIGNING_PRIVATE_KEY is not set as a repo secret."
-            echo "Files present:"; ls -la artifacts/adhd-life-macos-update/ || true
+            echo "Ensure TAURI_SIGNING_PRIVATE_KEY is set as a repo secret."
+            echo "Files present:"; ls -la artifacts/adhd-life-macos-update/
             exit 1
           fi
 
-          MAC_SIG=$(cat artifacts/adhd-life-macos-update/*universal.app.tar.gz.sig)
+          MAC_SIG=$(cat artifacts/adhd-life-macos-update/*.app.tar.gz.sig)
           WIN_SIG=$(cat artifacts/adhd-life-windows-sig/*.exe.sig)
 
-          MAC_FILE=$(basename $(ls artifacts/adhd-life-macos-update/*universal.app.tar.gz))
+          MAC_FILE=$(basename $(ls artifacts/adhd-life-macos-update/*.app.tar.gz))
           WIN_FILE=$(basename $(ls artifacts/adhd-life-windows-exe/*.exe))
 
           cat > latest.json << ENDJSON
@@ -212,7 +214,6 @@ jobs:
             "pub_date": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
             "platforms": {
               "darwin-aarch64": { "signature": "$MAC_SIG", "url": "$BASE/$MAC_FILE" },
-              "darwin-x86_64":  { "signature": "$MAC_SIG", "url": "$BASE/$MAC_FILE" },
               "windows-x86_64": { "signature": "$WIN_SIG", "url": "$BASE/$WIN_FILE" }
             }
           }
