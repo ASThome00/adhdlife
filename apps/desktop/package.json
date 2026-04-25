@@ -6,6 +6,8 @@
   "scripts": {
     "dev":        "tauri dev",
     "build":      "tauri build",
+    "build:desktop:mac": "tauri build",
+    "build:desktop:windows": "tauri build",
     "preview":    "vite preview",
     "vite:dev":   "vite",
     "typecheck":  "tsc --noEmit",
