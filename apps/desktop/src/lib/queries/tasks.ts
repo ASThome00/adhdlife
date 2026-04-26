@@ -217,6 +217,34 @@ export async function dropTask(id: string) {
   await updateTask(id, { status: 'DROPPED' })
 }
 
+// ─── RECURRENCE ───────────────────────────────────────────────────────────────
+
+export interface Recurrence {
+  id:           string
+  task_id:      string
+  frequency:    'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'YEARLY'
+  interval_val: number
+}
+
+export async function getRecurrence(taskId: string): Promise<Recurrence | null> {
+  return selectOne<Recurrence>('SELECT * FROM recurrences WHERE task_id = ?', [taskId])
+}
+
+export async function setRecurrence(
+  taskId: string,
+  frequency: Recurrence['frequency'] | null
+): Promise<void> {
+  if (frequency === null) {
+    await execute('DELETE FROM recurrences WHERE task_id = ?', [taskId])
+  } else {
+    await execute(
+      `INSERT OR REPLACE INTO recurrences (id, task_id, frequency, interval_val)
+       VALUES (?, ?, ?, 1)`,
+      [randomId(), taskId, frequency]
+    )
+  }
+}
+
 // ─── NORMALIZATION ────────────────────────────────────────────────────────────
 
 function normalizeTask(row: any): Task {

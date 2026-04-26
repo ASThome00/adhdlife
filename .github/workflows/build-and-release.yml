@@ -310,7 +310,7 @@ jobs:
 
           if [ "$HAS_MAC" -eq 1 ]; then
             MAC_SIG=$(cat "$MAC_SIG_FILE")
-            MAC_NAME=$(basename "$MAC_BUNDLE_FILE")
+            MAC_NAME=$(basename "$MAC_BUNDLE_FILE" | tr ' ' '.')
             MAC_URL="$BASE/$MAC_NAME"
             # Universal binary: list both archs pointing at the same bundle so Intel Macs auto-update too.
             PLATFORMS_JSON=$(echo "$PLATFORMS_JSON" | jq \
@@ -322,7 +322,7 @@ jobs:
 
           if [ "$HAS_WIN" -eq 1 ]; then
             WIN_SIG=$(cat "$WIN_SIG_FILE")
-            WIN_NAME=$(basename "$WIN_EXE_FILE")
+            WIN_NAME=$(basename "$WIN_EXE_FILE" | tr ' ' '.')
             WIN_URL="$BASE/$WIN_NAME"
             PLATFORMS_JSON=$(echo "$PLATFORMS_JSON" | jq \
               --arg sig "$WIN_SIG" --arg url "$WIN_URL" \
