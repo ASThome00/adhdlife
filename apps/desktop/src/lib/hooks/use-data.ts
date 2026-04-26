@@ -4,10 +4,11 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { getDashboardData, getTasks, createTask, updateTask, brainDump } from '@/lib/queries/tasks'
-import { getHabits, toggleHabitToday, getCategories } from '@/lib/queries/habits-categories-books'
+import { getDashboardData, getTasks, getSubtasks, createTask, updateTask, brainDump, dropTask, getRecurrence, setRecurrence } from '@/lib/queries/tasks'
+import { getHabits, toggleHabitToday, getCategories, createCategory, updateCategory } from '@/lib/queries/habits-categories-books'
 import { getSettings, updateSettings } from '@/lib/queries/settings'
-import type { CreateTaskInput } from '@/lib/queries/tasks'
+import type { CreateTaskInput, Recurrence } from '@/lib/queries/tasks'
+import type { Category } from '@/lib/queries/habits-categories-books'
 
 // ─── QUERY KEYS ───────────────────────────────────────────────────────────────
 export const qk = {
@@ -17,6 +18,8 @@ export const qk = {
   habits:     ['habits']               as const,
   categories: ['categories']           as const,
   books:      (s?: string) => ['books', s ?? 'all'] as const,
+  subtasks:   (parentId: string) => ['subtasks', parentId] as const,
+  recurrence: (taskId: string)   => ['recurrence', taskId] as const,
 }
 
 // ─── SETTINGS ─────────────────────────────────────────────────────────────────
@@ -53,9 +56,12 @@ export function useCreateTask() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (input: CreateTaskInput) => createTask(input),
-    onSuccess: () => {
+    onSuccess: (_id, input) => {
       qc.invalidateQueries({ queryKey: ['tasks'] })
       qc.invalidateQueries({ queryKey: qk.dashboard })
+      if (input.parent_task_id) {
+        qc.invalidateQueries({ queryKey: qk.subtasks(input.parent_task_id) })
+      }
       toast.success('Task added!')
     },
     onError: () => toast.error('Failed to add task'),
@@ -157,3 +163,110 @@ export function useCategories() {
     staleTime: 5 * 60 * 1000,
   })
 }
+
+export function useCreateCategory() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ name, color }: { name: string; color: string }) => createCategory(name, color),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.categories }),
+    onError: () => toast.error('Failed to create category'),
+  })
+}
+
+export function useUpdateCategory() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Parameters<typeof updateCategory>[1] }) =>
+      updateCategory(id, data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.categories }),
+    onError: () => toast.error('Failed to update category'),
+  })
+}
+
+// ─── SUBTASKS ─────────────────────────────────────────────────────────────────
+export function useSubtasks(parentId: string) {
+  return useQuery({
+    queryKey: qk.subtasks(parentId),
+    queryFn:  () => getSubtasks(parentId),
+    enabled:  Boolean(parentId),
+  })
+}
+
+// ─── DROP / SNOOZE ────────────────────────────────────────────────────────────
+export function useDropTask() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => dropTask(id),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['tasks'] })
+      const snapshots = qc.getQueriesData<any[]>({ queryKey: ['tasks'] })
+      for (const [key, data] of snapshots) {
+        if (Array.isArray(data)) {
+          qc.setQueryData(key, data.filter((t: any) => t.id !== id))
+        }
+      }
+      return { snapshots }
+    },
+    onError: (_err, _id, ctx: any) => {
+      for (const [key, data] of ctx?.snapshots ?? []) {
+        qc.setQueryData(key, data)
+      }
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['tasks'] })
+      qc.invalidateQueries({ queryKey: qk.dashboard })
+    },
+  })
+}
+
+export function useSnoozeTask() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, until }: { id: string; until: string }) =>
+      updateTask(id, { status: 'SNOOZED', snoozed_until: until }),
+    onMutate: async ({ id }) => {
+      await qc.cancelQueries({ queryKey: ['tasks'] })
+      const snapshots = qc.getQueriesData<any[]>({ queryKey: ['tasks'] })
+      for (const [key, data] of snapshots) {
+        if (Array.isArray(data)) {
+          qc.setQueryData(key, data.filter((t: any) => t.id !== id))
+        }
+      }
+      return { snapshots }
+    },
+    onError: (_err, _vars, ctx: any) => {
+      for (const [key, data] of ctx?.snapshots ?? []) {
+        qc.setQueryData(key, data)
+      }
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['tasks'] })
+      qc.invalidateQueries({ queryKey: qk.dashboard })
+    },
+  })
+}
+
+// ─── RECURRENCE ───────────────────────────────────────────────────────────────
+export function useRecurrence(taskId: string) {
+  return useQuery({
+    queryKey:  qk.recurrence(taskId),
+    queryFn:   () => getRecurrence(taskId),
+    staleTime: 0,
+    enabled:   Boolean(taskId),
+  })
+}
+
+export function useSetRecurrence() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ taskId, frequency }: { taskId: string; frequency: Recurrence['frequency'] | null }) =>
+      setRecurrence(taskId, frequency),
+    onSuccess: (_result, { taskId }) => {
+      qc.invalidateQueries({ queryKey: qk.recurrence(taskId) })
+    },
+    onError: () => toast.error('Failed to update recurrence'),
+  })
+}
+
+// Re-export types so consumers can import from one place
+export type { Recurrence, Category }
