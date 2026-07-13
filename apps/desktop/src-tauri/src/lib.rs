@@ -13,12 +13,20 @@ pub fn run() {
             tauri_plugin_sql::Builder::default()
                 .add_migrations(
                     "sqlite:adhd-life.db",
-                    vec![tauri_plugin_sql::Migration {
-                        version:     1,
-                        description: "initial_schema",
-                        sql:         include_str!("../migrations/001_initial.sql"),
-                        kind:        tauri_plugin_sql::MigrationKind::Up,
-                    }],
+                    vec![
+                        tauri_plugin_sql::Migration {
+                            version:     1,
+                            description: "initial_schema",
+                            sql:         include_str!("../migrations/001_initial.sql"),
+                            kind:        tauri_plugin_sql::MigrationKind::Up,
+                        },
+                        tauri_plugin_sql::Migration {
+                            version:     2,
+                            description: "next_week_priorities",
+                            sql:         include_str!("../migrations/002_next_week_priorities.sql"),
+                            kind:        tauri_plugin_sql::MigrationKind::Up,
+                        },
+                    ],
                 )
                 .build(),
         )
@@ -30,6 +38,9 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         // Process plugin — needed for relaunch after installing an update
         .plugin(tauri_plugin_process::init())
+        // Dialog + FS plugins — native save dialog and file write for data export
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         // Set up the main window
         .setup(|app| {
             #[cfg(debug_assertions)]
