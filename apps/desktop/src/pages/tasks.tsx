@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useTasks, useCategories, useCompleteTask, useSnoozeTask, useDropTask, useUpdateTask } from '@/lib/hooks/use-data'
-import { endOfTodaySql, todayDateStr } from '@/lib/db'
+import { endOfTodaySql, todayDateStr, localDateStr } from '@/lib/db'
 import { CategorySidebar } from '@/components/tasks/category-sidebar'
 import { TaskSection } from '@/components/tasks/task-section'
 import { TaskDetailPanel } from '@/components/tasks/task-detail-panel'
@@ -28,20 +28,25 @@ const MONO_META: React.CSSProperties = {
 function weekLaterStr(): string {
   const d = new Date()
   d.setDate(d.getDate() + 7)
-  return d.toISOString().slice(0, 10)
+  return localDateStr(d)
 }
 
+// LOCAL calendar date — due dates are stored as instants (local 23:59 → UTC
+// ISO), so slicing the UTC string put "Today" tasks in tomorrow's bucket.
 function dueStr(task: Task): string | null {
-  return task.due_date ? task.due_date.slice(0, 10) : null
+  return task.due_date ? localDateStr(new Date(task.due_date)) : null
 }
 
 export function TasksPage() {
   const [selectedCatId, setSelectedCatId] = useState<string | null>(null)
-  const [detailTask,    setDetailTask]    = useState<Task | null>(null)
+  const [detailTaskId,  setDetailTaskId]  = useState<string | null>(null)
   const [undoState,     setUndoState]     = useState<UndoState | null>(null)
 
   const { data: allTasks  = [] } = useTasks(selectedCatId ? { category_id: selectedCatId } : undefined)
   const { data: categories = [] } = useCategories()
+  // Derive the panel's task from the live cache — a frozen snapshot meant
+  // priority/category edits saved but never lit up in the panel.
+  const detailTask = allTasks.find(t => t.id === detailTaskId) ?? null
   const completeTask = useCompleteTask()
   const snoozeTask   = useSnoozeTask()
   const dropTask     = useDropTask()
@@ -86,9 +91,15 @@ export function TasksPage() {
     updateTask.mutate({ id, data: { due_date: endOfTodaySql(), status: 'ACTIVE' } })
   }
 
+  function handleFocusToday(id: string, focus: boolean) {
+    if (focus) updateTask.mutate({ id, data: { is_focus_today: true, status: 'ACTIVE' } })
+    else       updateTask.mutate({ id, data: { is_focus_today: false } })
+  }
+
   const sectionProps = {
     onComplete: (id: string) => completeTask.mutate(id),
-    onOpenDetail: setDetailTask,
+    onOpenDetail: (t: Task) => setDetailTaskId(t.id),
+    onFocusToday: handleFocusToday,
     onSnooze: handleSnooze,
     onMoveToToday: handleMoveToToday,
     onDrop: handleDrop,
@@ -127,7 +138,7 @@ export function TasksPage() {
       <TaskDetailPanel
         key={detailTask?.id ?? 'none'}
         task={detailTask}
-        onClose={() => setDetailTask(null)}
+        onClose={() => setDetailTaskId(null)}
       />
 
       <AnimatePresence>

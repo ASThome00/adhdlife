@@ -115,6 +115,18 @@ export function TaskDetailPanel({ task, onClose }: Props) {
           </div>
         </div>
 
+        {/* Focus */}
+        <div>
+          <Label>Focus</Label>
+          <button
+            type="button"
+            onClick={() => save(task.is_focus_today ? { is_focus_today: false } : { is_focus_today: true, status: 'ACTIVE' })}
+            style={{ padding: '4px 12px', borderRadius: 7, fontFamily: 'Geist, sans-serif', fontSize: 12, fontWeight: task.is_focus_today ? 600 : 400, border: `1.5px solid ${task.is_focus_today ? 'var(--accent)' : 'var(--border)'}`, background: task.is_focus_today ? 'var(--bg-accent)' : 'transparent', color: task.is_focus_today ? 'var(--text-accent)' : 'var(--text-sidebar)', cursor: 'pointer', transition: 'all 0.12s' }}
+          >
+            {task.is_focus_today ? '⚡ Focused today' : "Add to today's focus"}
+          </button>
+        </div>
+
         {/* Category */}
         <div>
           <Label>Category</Label>
@@ -139,7 +151,7 @@ export function TaskDetailPanel({ task, onClose }: Props) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {subtasks.map(sub => (
               <div key={sub.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <SubCheckbox done={sub.status === 'DONE'} onToggle={() => sub.status !== 'DONE' && completeTask.mutate(sub.id)} />
+                <SubCheckbox done={sub.status === 'DONE'} onToggle={() => sub.status === 'DONE' ? updateTask.mutate({ id: sub.id, data: { status: 'ACTIVE' } }) : completeTask.mutate(sub.id)} />
                 <span style={{ fontFamily: 'Geist, sans-serif', fontSize: 13, color: 'var(--text-body)', textDecoration: sub.status === 'DONE' ? 'line-through' : 'none', opacity: sub.status === 'DONE' ? 0.5 : 1 }}>
                   {sub.title}
                 </span>
@@ -176,7 +188,7 @@ function Label({ children }: { children: React.ReactNode }) {
 
 function SubCheckbox({ done, onToggle }: { done: boolean; onToggle: () => void }) {
   return (
-    <div onClick={onToggle} style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${done ? '#b0435c' : 'var(--text-faint)'}`, background: done ? '#c9566e' : 'transparent', cursor: done ? 'default' : 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div onClick={onToggle} style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${done ? '#b0435c' : 'var(--text-faint)'}`, background: done ? '#c9566e' : 'transparent', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       {done && <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
     </div>
   )

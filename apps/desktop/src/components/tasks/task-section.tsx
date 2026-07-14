@@ -10,10 +10,11 @@ interface Props {
   onSnooze: (id: string, days: 1 | 7) => void
   onMoveToToday: (id: string) => void
   onDrop: (id: string) => void
+  onFocusToday: (id: string, focus: boolean) => void
   defaultOpen?: boolean
 }
 
-export function TaskSection({ label, tasks, onComplete, onOpenDetail, onSnooze, onMoveToToday, onDrop, defaultOpen = true }: Props) {
+export function TaskSection({ label, tasks, onComplete, onOpenDetail, onSnooze, onMoveToToday, onDrop, onFocusToday, defaultOpen = true }: Props) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   if (tasks.length === 0) return null
@@ -85,6 +86,7 @@ export function TaskSection({ label, tasks, onComplete, onOpenDetail, onSnooze, 
                 onSnooze={onSnooze}
                 onMoveToToday={onMoveToToday}
                 onDrop={onDrop}
+                onFocusToday={onFocusToday}
               />
             }
           />
@@ -100,9 +102,10 @@ interface KebabProps {
   onSnooze: (id: string, days: 1 | 7) => void
   onMoveToToday: (id: string) => void
   onDrop: (id: string) => void
+  onFocusToday: (id: string, focus: boolean) => void
 }
 
-function KebabMenu({ task, onEdit, onSnooze, onMoveToToday, onDrop }: KebabProps) {
+function KebabMenu({ task, onEdit, onSnooze, onMoveToToday, onDrop, onFocusToday }: KebabProps) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -161,6 +164,8 @@ function KebabMenu({ task, onEdit, onSnooze, onMoveToToday, onDrop }: KebabProps
         >
           {[
             { label: 'Edit', fn: onEdit },
+            { label: task.is_focus_today ? 'Remove from focus' : 'Focus today',
+              fn: () => onFocusToday(task.id, !task.is_focus_today) },
             { label: 'Snooze 1 day',  fn: () => onSnooze(task.id, 1) },
             { label: 'Snooze 1 week', fn: () => onSnooze(task.id, 7) },
             { label: 'Move to today', fn: () => onMoveToToday(task.id) },
