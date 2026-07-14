@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import { localDateStr } from '@/lib/db'
 
 interface Props {
   color:     string
@@ -15,7 +16,7 @@ export function HabitDotGrid({ color, doneDates, days = 30 }: Props) {
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date()
     d.setDate(d.getDate() - i)
-    const dateStr = d.toISOString().split('T')[0]
+    const dateStr = localDateStr(d)
     cells.push({ date: dateStr, done: doneDates.has(dateStr) })
   }
 

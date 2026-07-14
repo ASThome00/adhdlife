@@ -7,6 +7,7 @@ import toast from 'react-hot-toast'
 import { getDashboardData, getTasks, getSubtasks, createTask, updateTask, brainDump, dropTask, getRecurrence, setRecurrence, getWeeklyReviewData } from '@/lib/queries/tasks'
 import { getHabits, createHabit, updateHabit, toggleHabitToday, getHabitHistory, getCategories, createCategory, updateCategory, getBooks, createBook, updateBook } from '@/lib/queries/habits-categories-books'
 import { getSettings, updateSettings } from '@/lib/queries/settings'
+import { todayDateStr } from '@/lib/db'
 import type { CreateTaskInput, Recurrence } from '@/lib/queries/tasks'
 import type { Category, Book } from '@/lib/queries/habits-categories-books'
 
@@ -78,6 +79,7 @@ export function useUpdateTask() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] })
       qc.invalidateQueries({ queryKey: qk.dashboard })
+      qc.invalidateQueries({ queryKey: qk.weeklyReview })
     },
     onError: () => toast.error('Failed to update task'),
   })
@@ -111,6 +113,8 @@ export function useCompleteTask() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: qk.dashboard })
       qc.invalidateQueries({ queryKey: ['tasks'] })
+      qc.invalidateQueries({ queryKey: ['subtasks'] })
+      qc.invalidateQueries({ queryKey: qk.weeklyReview })
     },
   })
 }
@@ -167,7 +171,7 @@ export function useToggleHabit() {
             : h
         )
       })
-      const today = new Date().toISOString().split('T')[0]
+      const today = todayDateStr()
       qc.setQueryData(qk.habitHistory, (old: any) => {
         if (!old) return old
         const rest = old.filter((e: any) => !(e.habit_id === habitId && e.date === today))
@@ -328,6 +332,7 @@ export function useDropTask() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] })
       qc.invalidateQueries({ queryKey: qk.dashboard })
+      qc.invalidateQueries({ queryKey: qk.weeklyReview })
     },
   })
 }
@@ -355,6 +360,7 @@ export function useSnoozeTask() {
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] })
       qc.invalidateQueries({ queryKey: qk.dashboard })
+      qc.invalidateQueries({ queryKey: qk.weeklyReview })
     },
   })
 }

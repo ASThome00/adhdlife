@@ -1,5 +1,5 @@
 // apps/desktop/src/lib/queries/tasks.ts
-import { select, selectOne, execute, startOfTodaySql, endOfTodaySql, todayDateStr, toSqlDate } from '@/lib/db'
+import { select, selectOne, execute, startOfTodaySql, endOfTodaySql, todayDateStr, toSqlDate, localDateStr, localNaiveDateTime } from '@/lib/db'
 import { randomId } from '@/lib/utils'
 
 export type Priority  = 'LOW' | 'MEDIUM' | 'HIGH'
@@ -65,7 +65,9 @@ export async function getTasks(filters?: {
     FROM tasks t
     LEFT JOIN categories c ON t.category_id = c.id
     ${where}
-    ORDER BY t.is_focus_today DESC, t.priority DESC, t.due_date ASC, t.created_at ASC
+    ORDER BY t.is_focus_today DESC,
+             CASE t.priority WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 ELSE 2 END,
+             t.due_date ASC, t.created_at ASC
   `, args).then(rows => rows.map(normalizeTask))
 }
 
@@ -90,7 +92,7 @@ export async function getDashboardData() {
   const todayEnd   = endOfTodaySql()
   const today      = todayDateStr()
 
-  const [focusTasks, overdueTasks, upcomingToday, habits, completedCount] = await Promise.all([
+  const [focusTasks, overdueTasks, upcomingToday, habits, completedCount, focusDoneCount] = await Promise.all([
     select<Task>(`
       SELECT t.*, c.name AS category_name, c.color AS category_color, c.icon AS category_icon
       FROM tasks t LEFT JOIN categories c ON t.category_id = c.id
@@ -109,7 +111,7 @@ export async function getDashboardData() {
       WHERE t.is_focus_today = 0
         AND t.due_date >= ? AND t.due_date <= ?
         AND t.status NOT IN ('DONE','DROPPED') AND t.parent_task_id IS NULL
-      ORDER BY t.priority DESC, t.due_date ASC
+      ORDER BY CASE t.priority WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 ELSE 2 END, t.due_date ASC
     `, [todayStart, todayEnd]),
     select<any>(`
       SELECT h.*, COALESCE(hl.completed, 0) AS completed_today
@@ -127,7 +129,15 @@ export async function getDashboardData() {
       `SELECT COUNT(*) as c FROM tasks
        WHERE status = 'DONE' AND completed_at IS NOT NULL
          AND datetime(completed_at) >= datetime(?, 'utc')`,
-      [localNaive(new Date(new Date().setHours(0, 0, 0, 0)))]
+      [localNaiveDateTime(new Date(new Date().setHours(0, 0, 0, 0)))]
+    ),
+    // Focus-card ratio: only focus tasks completed today (completedToday above
+    // counts everything and feeds the topbar).
+    selectOne<{ c: number }>(
+      `SELECT COUNT(*) as c FROM tasks
+       WHERE is_focus_today = 1 AND status = 'DONE' AND completed_at IS NOT NULL
+         AND datetime(completed_at) >= datetime(?, 'utc')`,
+      [localNaiveDateTime(new Date(new Date().setHours(0, 0, 0, 0)))]
     ),
   ])
 
@@ -137,6 +147,7 @@ export async function getDashboardData() {
     upcomingToday:       upcomingToday.map(normalizeTask),
     habits:              habits.map(h => ({ ...h, completed_today: Boolean(h.completed_today) })),
     completedToday:      completedCount?.c ?? 0,
+    completedFocusToday: focusDoneCount?.c ?? 0,
     totalScheduledToday: focusTasks.length + upcomingToday.length,
   }
 }
@@ -265,12 +276,6 @@ export interface WeeklyReviewData {
   categoryBreakdown: Array<{ category_id: string | null; name: string; count: number }>
 }
 
-/** 'YYYY-MM-DD HH:MM:SS' in local time — for datetime(?, 'utc') comparisons. */
-function localNaive(d: Date): string {
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`
-}
-
 export async function getWeeklyReviewData(): Promise<WeeklyReviewData> {
   const now = new Date()
   // Week = Monday..Sunday of the current week
@@ -282,7 +287,7 @@ export async function getWeeklyReviewData(): Promise<WeeklyReviewData> {
   weekEnd.setDate(weekStart.getDate() + 6)
   weekEnd.setHours(23, 59, 59, 999)
 
-  const weekStartNaive = localNaive(weekStart)
+  const weekStartNaive = localNaiveDateTime(weekStart)
   const weekStartIso   = weekStart.toISOString()
   const weekEndIso     = weekEnd.toISOString()
 
@@ -290,7 +295,7 @@ export async function getWeeklyReviewData(): Promise<WeeklyReviewData> {
   // week-to-date window the same way for an apples-to-apples count.
   const windowDates: string[] = []
   for (let d = new Date(weekStart); d <= now; d.setDate(d.getDate() + 1)) {
-    windowDates.push(d.toISOString().split('T')[0])
+    windowDates.push(localDateStr(d))
   }
 
   const [completed, planned, cleared, habitRows, carriedRows, catRows] = await Promise.all([

@@ -45,7 +45,7 @@ export function DashboardPage() {
           <div className="dash-grid">
             {/* Left column */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <FocusTasksCard tasks={focusTasks} completedToday={completedToday} />
+              <FocusTasksCard tasks={focusTasks} completedFocusToday={data?.completedFocusToday ?? 0} />
               <HabitsCard habits={habits as any} />
               <MotivationQuote />
             </div>

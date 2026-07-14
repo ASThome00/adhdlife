@@ -3,17 +3,17 @@ import { useCompleteTask } from '@/lib/hooks/use-data'
 import { useQuickAdd } from '@/lib/stores/quick-add'
 import type { Task } from '@/lib/queries/tasks'
 
-export function FocusTasksCard({ tasks, completedToday }: { tasks: Task[]; completedToday: number }) {
+export function FocusTasksCard({ tasks, completedFocusToday }: { tasks: Task[]; completedFocusToday: number }) {
   const complete = useCompleteTask()
   const showQuickAdd = useQuickAdd(s => s.show)
 
-  const total = tasks.length + completedToday
+  const total = tasks.length + completedFocusToday
   return (
     <div className="card">
       <div className="card-title">
         <span aria-hidden>⚡</span> Focus tasks
         <span className="card-title-mono">
-          {completedToday}/{total}
+          {completedFocusToday}/{total}
         </span>
       </div>
 

@@ -1,5 +1,5 @@
 // apps/desktop/src/lib/queries/habits.ts
-import { select, selectOne, execute, todayDateStr } from '@/lib/db'
+import { select, selectOne, execute, todayDateStr, localDateStr } from '@/lib/db'
 import { randomId } from '@/lib/utils'
 
 export interface Habit {
@@ -53,7 +53,7 @@ export async function toggleHabitToday(habitId: string, completed: boolean) {
   let streak = 0
   let checkDate = new Date()
   while (true) {
-    const dateStr = checkDate.toISOString().split('T')[0]
+    const dateStr = localDateStr(checkDate)
     const log = await selectOne<{ completed: number }>(
       'SELECT completed FROM habit_logs WHERE habit_id = ? AND date = ?',
       [habitId, dateStr]
@@ -90,7 +90,7 @@ export interface HabitLogEntry {
 export async function getHabitHistory(days = 30): Promise<HabitLogEntry[]> {
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - (days - 1))
-  const cutoffStr = cutoff.toISOString().split('T')[0]
+  const cutoffStr = localDateStr(cutoff)
   const rows = await select<any>(
     'SELECT habit_id, date, completed FROM habit_logs WHERE date >= ? ORDER BY date ASC',
     [cutoffStr]

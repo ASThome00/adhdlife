@@ -131,7 +131,7 @@ export function getTodayTasks() {
     LEFT JOIN categories c ON t.category_id = c.id
     WHERE (t.is_focus_today = 1 OR DATE(t.due_date) = ?)
       AND t.status NOT IN ('DONE', 'DROPPED')
-    ORDER BY t.is_focus_today DESC, t.priority DESC, t.due_date ASC
+    ORDER BY t.is_focus_today DESC, CASE t.priority WHEN 'HIGH' THEN 0 WHEN 'MEDIUM' THEN 1 ELSE 2 END, t.due_date ASC
   `, [today])
 }
 
