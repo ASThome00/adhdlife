@@ -1,6 +1,8 @@
+import { motion, AnimatePresence } from 'framer-motion'
 import { useHabits, useHabitHistory } from '@/lib/hooks/use-data'
 import { AddHabitForm } from '@/components/habits/add-habit-form'
 import { HabitCard } from '@/components/habits/habit-card'
+import { LIST_ITEM_EXIT, LIST_ITEM_TRANSITION } from '@/lib/motion'
 
 export function HabitsPage() {
   const { data: habits = [], isLoading } = useHabits()
@@ -38,9 +40,13 @@ export function HabitsPage() {
               No habits yet. Start with one tiny thing — that's how streaks begin.
             </div>
           ) : (
-            habits.map(h => (
-              <HabitCard key={h.id} habit={h} doneDates={doneByHabit.get(h.id) ?? new Set()} />
-            ))
+            <AnimatePresence initial={false}>
+              {habits.map(h => (
+                <motion.div key={h.id} layout exit={LIST_ITEM_EXIT} transition={LIST_ITEM_TRANSITION}>
+                  <HabitCard habit={h} doneDates={doneByHabit.get(h.id) ?? new Set()} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           )}
         </div>
       </div>

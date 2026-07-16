@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { TaskRow } from '@/components/ui/task-row'
+import { LIST_ITEM_EXIT, LIST_ITEM_TRANSITION } from '@/lib/motion'
 import type { Task } from '@/lib/queries/tasks'
 
 interface Props {
@@ -59,24 +61,27 @@ export function TaskSection({ label, tasks, onComplete, onOpenDetail, onSnooze, 
         opacity: isOpen ? 1 : 0,
         transition: 'max-height 0.3s ease, opacity 0.25s ease',
       }}>
-        {tasks.map(task => (
-          <TaskRow
-            key={task.id}
-            task={task}
-            onComplete={onComplete}
-            onRowClick={(id) => onOpenDetail(tasks.find(t => t.id === id)!)}
-            trailing={
-              <KebabMenu
+        <AnimatePresence initial={false}>
+          {tasks.map(task => (
+            <motion.div key={task.id} layout exit={LIST_ITEM_EXIT} transition={LIST_ITEM_TRANSITION}>
+              <TaskRow
                 task={task}
-                onEdit={() => onOpenDetail(task)}
-                onSnooze={onSnooze}
-                onMoveToToday={onMoveToToday}
-                onDrop={onDrop}
-                onFocusToday={onFocusToday}
+                onComplete={onComplete}
+                onRowClick={(id) => onOpenDetail(tasks.find(t => t.id === id)!)}
+                trailing={
+                  <KebabMenu
+                    task={task}
+                    onEdit={() => onOpenDetail(task)}
+                    onSnooze={onSnooze}
+                    onMoveToToday={onMoveToToday}
+                    onDrop={onDrop}
+                    onFocusToday={onFocusToday}
+                  />
+                }
               />
-            }
-          />
-        ))}
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
     </div>
   )

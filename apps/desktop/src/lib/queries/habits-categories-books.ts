@@ -147,7 +147,7 @@ export async function updateCategory(id: string, data: Partial<Pick<Category, 'n
 
 // ─── BOOKS ────────────────────────────────────────────────────────────────────
 
-export type BookStatus = 'TO_READ' | 'READING' | 'FINISHED' | 'ABANDONED'
+export type BookStatus = 'TO_READ' | 'READING' | 'FINISHED' | 'ABANDONED' | 'REMOVED'
 
 export interface Book {
   id:           string
@@ -190,4 +190,10 @@ export async function updateBook(id: string, data: Partial<Omit<Book, 'id'>>) {
   }
   values.push(id)
   await execute(`UPDATE books SET ${fields.join(', ')} WHERE id = ?`, values)
+}
+
+/** Soft-remove — same pattern as dropTask: flip status so the book falls out
+ *  of every column, row stays in the DB (still covered by data export). */
+export async function removeBook(id: string) {
+  await updateBook(id, { status: 'REMOVED' })
 }

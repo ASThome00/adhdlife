@@ -4,6 +4,7 @@ import toast from 'react-hot-toast'
 import { useBrainDump, useTasks, useUpdateTask, useCategories } from '@/lib/hooks/use-data'
 import { getCategoryTheme } from '@/lib/category-colors'
 import { InboxRow } from '@/components/tasks/inbox-row'
+import { LIST_ITEM_EXIT, LIST_ITEM_TRANSITION } from '@/lib/motion'
 
 type DueSel = 'today' | 'tomorrow' | 'week'
 
@@ -147,17 +148,20 @@ export function InboxPage() {
                 </span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {visibleTasks.map(task => (
-                  <InboxRow
-                    key={task.id}
-                    task={task}
-                    categories={categories}
-                    selected={selectedIds.has(task.id)}
-                    onToggleSelect={toggleSelect}
-                    onAssignCategory={handleAssignCategory}
-                    onDrop={handleDrop}
-                  />
-                ))}
+                <AnimatePresence initial={false}>
+                  {visibleTasks.map(task => (
+                    <motion.div key={task.id} layout exit={LIST_ITEM_EXIT} transition={LIST_ITEM_TRANSITION}>
+                      <InboxRow
+                        task={task}
+                        categories={categories}
+                        selected={selectedIds.has(task.id)}
+                        onToggleSelect={toggleSelect}
+                        onAssignCategory={handleAssignCategory}
+                        onDrop={handleDrop}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             </div>
           )}

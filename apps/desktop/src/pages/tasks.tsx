@@ -5,7 +5,7 @@ import { endOfTodaySql, todayDateStr, localDateStr } from '@/lib/db'
 import { CategorySidebar } from '@/components/tasks/category-sidebar'
 import { TaskSection } from '@/components/tasks/task-section'
 import { TaskDetailPanel } from '@/components/tasks/task-detail-panel'
-import { UndoToast } from '@/components/tasks/undo-toast'
+import { UndoToast } from '@/components/ui/undo-toast'
 import type { Task } from '@/lib/queries/tasks'
 
 type UndoState = { message: string; undo: () => void }

@@ -1,7 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useUpdateTask, useDropTask, qk } from '@/lib/hooks/use-data'
 import { CategoryDot } from '@/components/ui/category-dot'
 import { formatDueDate } from '@/lib/utils'
+import { LIST_ITEM_EXIT, LIST_ITEM_TRANSITION } from '@/lib/motion'
 import type { Task } from '@/lib/queries/tasks'
 
 /** Next Monday, end of day — "next week" without picking a scary deadline. */
@@ -40,35 +42,37 @@ export function CarriedOverCard({ tasks }: { tasks: Task[] }) {
           Nothing left over — clean slate for next week.
         </p>
       ) : (
-        tasks.map(t => (
-          <div key={t.id} className="task-row" style={{ cursor: 'default' }}>
-            <CategoryDot categoryId={t.category_id} categoryName={t.category_name} size={8} />
-            <span className="task-title">{t.title}</span>
-            {t.due_date && (
-              <span className="num" style={{ fontSize: 10.5, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
-                {formatDueDate(t.due_date)}
-              </span>
-            )}
-            <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
-              <button type="button" className="chip" style={pillStyle}
-                onClick={() => withOptimisticRemove(t.id, () =>
-                  updateTask.mutate({ id: t.id, data: { due_date: nextMondayIso(), status: 'ACTIVE' } })
-                )}>
-                Next week
-              </button>
-              <button type="button" className="chip sel" style={pillStyle}
-                onClick={() => withOptimisticRemove(t.id, () =>
-                  updateTask.mutate({ id: t.id, data: { is_focus_today: true, status: 'ACTIVE' } })
-                )}>
-                Focus now
-              </button>
-              <button type="button" className="chip" style={pillStyle}
-                onClick={() => withOptimisticRemove(t.id, () => dropTask.mutate(t.id))}>
-                Drop
-              </button>
-            </div>
-          </div>
-        ))
+        <AnimatePresence initial={false}>
+          {tasks.map(t => (
+            <motion.div key={t.id} className="task-row" layout exit={LIST_ITEM_EXIT} transition={LIST_ITEM_TRANSITION} style={{ cursor: 'default' }}>
+              <CategoryDot categoryId={t.category_id} categoryName={t.category_name} size={8} />
+              <span className="task-title">{t.title}</span>
+              {t.due_date && (
+                <span className="num" style={{ fontSize: 10.5, color: 'var(--text-faint)', whiteSpace: 'nowrap' }}>
+                  {formatDueDate(t.due_date)}
+                </span>
+              )}
+              <div style={{ display: 'flex', gap: 5, flexShrink: 0 }}>
+                <button type="button" className="chip" style={pillStyle}
+                  onClick={() => withOptimisticRemove(t.id, () =>
+                    updateTask.mutate({ id: t.id, data: { due_date: nextMondayIso(), status: 'ACTIVE' } })
+                  )}>
+                  Next week
+                </button>
+                <button type="button" className="chip sel" style={pillStyle}
+                  onClick={() => withOptimisticRemove(t.id, () =>
+                    updateTask.mutate({ id: t.id, data: { is_focus_today: true, status: 'ACTIVE' } })
+                  )}>
+                  Focus now
+                </button>
+                <button type="button" className="chip" style={pillStyle}
+                  onClick={() => withOptimisticRemove(t.id, () => dropTask.mutate(t.id))}>
+                  Drop
+                </button>
+              </div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       )}
     </div>
   )

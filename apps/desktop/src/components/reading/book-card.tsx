@@ -5,12 +5,13 @@ import { StarRating } from './star-rating'
 import { getCategoryTheme } from '@/lib/category-colors'
 import type { Book } from '@/lib/queries/habits-categories-books'
 
-export function BookCard({ book, onFinish }: { book: Book; onFinish: (b: Book) => void }) {
+export function BookCard({ book, onFinish, onRemove }: { book: Book; onFinish: (b: Book) => void; onRemove: (b: Book) => void }) {
   const updateBook = useUpdateBook()
   const [editingPage,  setEditingPage]  = useState(false)
   const [pageDraft,    setPageDraft]    = useState('')
   const [editingNotes, setEditingNotes] = useState(false)
   const [notesDraft,   setNotesDraft]   = useState('')
+  const [menuOpen,     setMenuOpen]     = useState(false)
 
   const genreTheme = getCategoryTheme('cat_reading')
   const pct = book.total_pages ? Math.min(100, Math.round((book.current_page / book.total_pages) * 100)) : 0
@@ -29,9 +30,38 @@ export function BookCard({ book, onFinish }: { book: Book; onFinish: (b: Book) =
   }
 
   return (
-    <div className="card" style={{ padding: '14px 16px' }}>
-      <div style={{ fontFamily: 'inherit', fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', marginBottom: 3 }}>{book.title}</div>
-      {book.author && <div style={{ fontFamily: 'inherit', fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{book.author}</div>}
+    <div className="card" style={{ padding: '14px 16px', position: 'relative' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 4 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: 'inherit', fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', marginBottom: 3 }}>{book.title}</div>
+          {book.author && <div style={{ fontFamily: 'inherit', fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{book.author}</div>}
+        </div>
+        <button
+          type="button"
+          onClick={() => setMenuOpen(o => !o)}
+          aria-label="Book options"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 16, padding: '0 4px', flexShrink: 0, lineHeight: 1.4, fontFamily: 'inherit' }}
+        >
+          {'⋯'}
+        </button>
+      </div>
+
+      {menuOpen && (
+        <>
+          <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={() => setMenuOpen(false)} />
+          <div style={{ position: 'absolute', top: 34, right: 12, zIndex: 91, background: 'var(--bg-card)', borderRadius: 13, boxShadow: '0 12px 32px rgba(10, 15, 10, 0.18)', padding: 6, minWidth: 120 }}>
+            <button
+              type="button"
+              onClick={() => { setMenuOpen(false); onRemove(book) }}
+              style={{ display: 'block', width: '100%', textAlign: 'left', padding: '7px 10px', borderRadius: 7, border: 'none', background: 'transparent', fontFamily: 'inherit', fontSize: 12.5, color: 'var(--text-accent)', cursor: 'pointer' }}
+              onMouseEnter={e => (e.currentTarget.style.background = 'var(--bg-hover)')}
+              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            >
+              Remove
+            </button>
+          </div>
+        </>
+      )}
 
       {book.status === 'TO_READ' && (
         /* "Start reading →" = accent-wash pill (dashed borders retired) */

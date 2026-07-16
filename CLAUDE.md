@@ -53,12 +53,12 @@ adhd-life/
 │   │   │   │   ├── setup.tsx         ✅ Done — first-run name screen
 │   │   │   │   ├── dashboard.tsx     ✅ Done — hero screen
 │   │   │   │   ├── inbox.tsx         ✅ Done — brain dump + assign flow
-│   │   │   │   ├── tasks.tsx         ✅ Done — Session 4 (two-panel + detail slide-over)
-│   │   │   │   ├── habits.tsx        ✅ Done — Session 5 (streaks + 30-day grid)
-│   │   │   │   ├── reading.tsx       ✅ Done — Session 6 (three-column book kanban)
-│   │   │   │   ├── review.tsx        ✅ Done — Session 7 (stats + carried-over + priorities)
+│   │   │   │   ├── tasks.tsx         ✅ Done — two-panel (category sidebar + sections) + detail slide-over
+│   │   │   │   ├── habits.tsx        ✅ Done — streaks + 30-day grid
+│   │   │   │   ├── reading.tsx       ✅ Done — three-column book kanban
+│   │   │   │   ├── review.tsx        ✅ Done — stats + carried-over + priorities
 │   │   │   │   ├── pomodoro.tsx      🔲 Next: focus-task initiation timer (see Product Decisions)
-│   │   │   │   └── settings.tsx      ✅ Done — Session 8 (profile/theme/categories/export + updater)
+│   │   │   │   └── settings.tsx      ✅ Done — profile/theme/categories/export + updater
 │   │   │   ├── components/
 │   │   │   │   ├── nav/              ✅ app-shell, sidebar, bottom-nav
 │   │   │   │   ├── dashboard/        ✅ topbar, week-strip, focus-tasks-card, habits-card,
@@ -139,6 +139,8 @@ Optimistic updates are implemented in `useCompleteTask` and `useToggleHabit` —
 | `updateTask(id, data)` | tasks.ts | Partial update, handles completion timestamp |
 | `brainDump(rawText)` | tasks.ts | Split text → bulk INSERT as INBOX |
 | `dropTask(id)` | tasks.ts | Soft delete (status=DROPPED) |
+| `getSubtasks(parentId)` | tasks.ts | Child tasks for a parent (subtask checklist) |
+| `getRecurrence` / `setRecurrence` | tasks.ts | Repeat cadence for a task (Never/Daily/Weekly/Monthly/Yearly) |
 | `getCategories()` | habits-categories-books.ts | With active task counts |
 | `getHabits()` | habits-categories-books.ts | With today's completion status |
 | `toggleHabitToday()` | habits-categories-books.ts | Upsert log + recalculate streak |
@@ -160,6 +162,30 @@ Optimistic updates are implemented in `useCompleteTask` and `useToggleHabit` —
 - `focus_days.task_ids` is a JSON string — `JSON.parse()` on read.
 - `recurrences.days_of_week` is a JSON string — `JSON.parse()` on read.
 - No `@db.Date` type — always full ISO datetime.
+
+---
+
+## Desktop: Page Behaviors
+
+Durable functional patterns from the shipped pages (visual spec lives in Design Reference below).
+
+**Tasks** (`pages/tasks.tsx`): sections are Overdue / Today / This week / Upcoming / Someday,
+plus Inbox (only shown in "All Tasks", hidden inside a category filter). Row menu: complete,
+snooze 1 day / 1 week, move to today, drop. Snooze and drop always show a 3s undo toast
+(`components/tasks/undo-toast.tsx`) instead of a confirm dialog — "Drop" not "Delete" is
+deliberate soft language. The detail slide-over supports subtasks (`getSubtasks(parentId)`,
+self-referencing `parent_task_id`) and recurrence (`getRecurrence`/`setRecurrence`).
+
+**Habits**: `updateHabit()` handles rename/recolor/archive. Archived habits
+(`is_archived = 1`) are hidden, never deleted — there is no delete affordance.
+
+**Reading**: three columns keyed on `status` — `TO_READ` / `READING` / `FINISHED` (a fourth,
+`RESTING`, i.e. "put down for now," is planned — see Product Decisions). Page count updates
+inline; finishing sets `rating` + `notes` via the finish modal.
+
+**Settings**: sections are Profile, Appearance (theme), Focus (daily limit), Categories
+(drag reorder via `@dnd-kit/sortable`, inline rename, recolor, archive), Data (export). The
+updater card is separate pre-existing infra — don't rebuild it.
 
 ---
 
@@ -304,267 +330,6 @@ Prerequisites:
 > The `## Design Reference` section at the bottom of this file is the canonical spec.
 > NOTE: the session logs below predate the redesign — their visual details (Lora italic,
 > rose #c9566e, offset shadows, dashed borders) are historical; follow Quiet Garden.
-
----
-
-## SESSION 4 — Tasks & Categories View ✅ SHIPPED
-
-**Goal:** The full task browser.
-
-```
-Read CLAUDE.md. Build the Tasks page.
-
-File: apps/desktop/src/pages/tasks.tsx
-
-DESIGN REFERENCE:
-The Tasks page already has a working prototype in design-reference/pages.jsx — see the
-TasksPage() component. Copy the visual patterns exactly:
-- Two-panel layout with category sidebar (160px) + scrollable main area
-- Category sidebar: color dot + name + count badge, active state uses nav-active-bg/fg tokens
-- Task rows: reuse the .task-row class pattern with Cb checkbox, PrioDot, title, CatPill, due label
-- All card/border/shadow values from CLAUDE.md Design Reference section
-Do not invent new colors or spacing — use only CSS vars defined in index.css.
-
-Layout: two-panel (sidebar + main), similar to an email client.
-
-LEFT PANEL (~220px, fixed):
-- "All Tasks" item at top (no filter)
-- Category list from useCategories()
-- Each item: color dot + name + active task count badge
-- Click to filter the main panel
-- "+ New Category" button at bottom → inline name + color picker form (8 preset swatches
-  matching the category colors defined in CLAUDE.md)
-
-MAIN PANEL (flex-grow, scrollable):
-- Heading: selected category name or "All Tasks" — Lora serif italic 19px
-- Tasks grouped into collapsible sections:
-    Overdue   — due_date < today, status not DONE/DROPPED
-    Today     — due_date = today
-    This Week — due_date within next 7 days
-    Upcoming  — due_date > 7 days
-    Someday   — no due_date, status = ACTIVE
-    Inbox     — status = INBOX (only shown in "All Tasks" view)
-- Each section header: DM Mono 11px uppercase label + count. Collapsed if count = 0.
-- Use getTasks() with appropriate filters per section.
-
-TASK ROW (use existing TaskRow component from components/ui/task-row.tsx):
-- Checkbox (complete) | Priority dot | Title | Category dot | Due date | "⋯" menu
-- "⋯" menu: Edit | Snooze 1 day | Snooze 1 week | Move to today | Drop
-- Click title → open TaskDetailPanel (slide-over from right)
-
-TASK DETAIL PANEL (slide-over, not a new page):
-- Slides in from right, overlays the main panel (not full-screen takeover)
-- Background: var(--bg-card), border-left: 1.5px solid var(--border)
-- Box-shadow: -4px 0 20px rgba(0,0,0,0.06)
-- Width: 360px
-- Fields: Title (editable, Lora serif), Notes (contenteditable, Geist),
-  Due date picker, Priority picker (LOW/MEDIUM/HIGH pills matching modal style),
-  Category picker (same pill pattern as QuickAddModal)
-- Subtasks checklist: list of child tasks, checkable, "+ Add subtask" inline input
-  Subtasks fetched with getSubtasks(taskId)
-- Recurrence: "Repeat" dropdown (Never / Daily / Weekly / Monthly / Yearly)
-  On select: INSERT into recurrences table
-- All edits call updateTask() on blur/change with optimistic update
-
-ADHD principles:
-- "Drop" not "Delete" — soft language
-- Snoozed tasks disappear from view (status=SNOOZED, snoozed_until set)
-- No confirmation dialogs for snooze/drop — undo toast for 3 seconds only
-- Undo toast style: var(--bg-card), border 1.5px solid var(--border),
-  box-shadow 3px 4px 0 var(--shadow), Geist 13px — matches card style
-```
-
----
-
-## SESSION 5 — Habits ✅ SHIPPED
-
-**Goal:** Daily habit tracking with forgiving streaks.
-
-```
-Read CLAUDE.md. Build the Habits page.
-
-File: apps/desktop/src/pages/habits.tsx
-
-DESIGN REFERENCE:
-The Habits page prototype lives in design-reference/pages.jsx — see HabitsPage().
-The dashboard habit circles are in design-reference/dashboard-cards.jsx — see HabitsCard().
-Key patterns to replicate:
-- Habit card: .card class, Lora serif name, DM Mono streak numbers
-- Streak number color: #c9566e when active, var(--text-faint) when paused
-- 30-day dot grid: 18×18px dots, border-radius 4px, habit color + 'cc' opacity when done,
-  var(--bg-card-lite) background when missed, var(--border) border
-- Today's circle: .hcircle class — see index.css. Done state: background #c9566e,
-  border-color #b0435c, box-shadow 3px 3.5px 0 var(--habit-shadow)
-- Color swatch picker: 8 presets — use the category color values from CLAUDE.md
-
-TOP SECTION — Add new habit:
-- Inline form: name input (border-bottom only, no box, matches modal input style) +
-  color swatch picker (8 preset circles, click to select) + "Add" button (btn-primary class)
-- Calls createHabit() from lib/queries/habits-categories-books.ts
-
-HABITS GRID (one card per habit):
-- Habit name (Lora 600 15px) + color dot indicator
-- Today's checkbox circle (.hcircle) — large, satisfying click
-- Current streak: "🔥 12 days" in DM Mono, colored #c9566e
-- Longest streak: "Best: 34" in Geist 11px var(--text-muted)
-- 30-day consistency grid (dots as described above)
-- Motivational text from getStreakMessage(currentStreak) — Lora italic 12px var(--text-mono)
-
-STREAK RULE (implement correctly):
-- toggleHabitToday() in queries handles DB logic — call it, trust it
-- If streak = 0 but longest > 0: "Paused at X days — start again today!" (never shame)
-- If streak > 0: use getStreakMessage() from lib/utils.ts
-
-ARCHIVE:
-- "⋯" menu on each card: Edit name | Archive
-- Archived habits hidden (is_archived = 1)
-- No delete
-```
-
----
-
-## SESSION 6 — Reading Tracker ✅ SHIPPED
-
-**Goal:** Track her med school reading and personal books.
-
-```
-Read CLAUDE.md. Build the Reading page.
-
-File: apps/desktop/src/pages/reading.tsx
-
-DESIGN REFERENCE:
-Prototype in design-reference/pages.jsx — see ReadingPage().
-Three-column kanban layout. Each column has a DM Mono 11px uppercase header.
-Book cards use .card class with padding 14px 16px.
-- Title: Lora 600 14px var(--text-primary)
-- Author: Geist 12px var(--text-muted)
-- Progress bar: height 4px, background var(--bg-card-lite), filled with #c9566e
-- Genre pill: same pill pattern as CategoryPill in app-components.jsx
-- Star rating: simple ★/☆ characters, color #c9566e for filled
-
-Layout: three columns — To Read | Currently Reading | Finished
-
-ADD BOOK button:
-- Top of "To Read" column — dashed border button (like the "+ add a task" button in
-  FocusTasksCard: 1.5px dashed var(--border), Lora italic, hover border #c9566e)
-- Opens modal (matches QuickAddModal style exactly): Title, Author, Genre, Page count
-- Calls createBook() from lib/queries/habits-categories-books.ts
-
-BOOK CARD status-specific content:
-  TO_READ: "Start reading" button → sets status=READING, started_at=now
-  READING: Progress bar + "Page N of M" (click page number = inline number input) +
-           "Mark finished" button (btn-primary)
-  FINISHED: Completion date (DM Mono 10px var(--text-muted)) +
-            Star rating (1–5, click to set, #c9566e filled) +
-            Notes snippet (Lora italic 12px, click to expand/edit)
-
-FINISH MODAL (matches .modal class):
-- Star rating: 5 interactive stars
-- Notes textarea (Lora italic, transparent background, no border box — matches brain dump)
-- On save: updateBook(id, { status: 'FINISHED', finished_at: now, rating, notes })
-```
-
----
-
-## SESSION 7 — Weekly Review ✅ SHIPPED
-
-**Goal:** A guided, encouraging look back at the week.
-
-```
-Read CLAUDE.md. Build the Weekly Review page.
-
-File: apps/desktop/src/pages/review.tsx
-
-DESIGN REFERENCE:
-Prototype in design-reference/pages.jsx — see ReviewPage().
-Key patterns:
-- Stats row: 3-column grid of .card cards, DM Mono 26px stat value, Lora 13px label
-- Carried forward list: .task-row pattern with PrioDot, no checkbox needed
-- Priority inputs: Geist 13.5px, background var(--bg-card-lite), border 1.5px var(--input-border),
-  border-radius 8px — NOT border-bottom-only (this is a form field, not inline edit)
-- Category bar chart: pure CSS div widths, colored with each category's ink color,
-  height 8px, border-radius 4px — no chart libraries
-
-Fetch everything in a single query — add getWeeklyReviewData() to lib/queries/tasks.ts.
-
-STATS SECTION (matches existing design):
-- Tasks completed this week vs. planned (calm ratio display)
-- Habit consistency % per habit (small colored bar per habit)
-- Brain dumps cleared
-
-CARRIED OVER SECTION:
-- Tasks due this week still ACTIVE or INBOX
-- Each: title + original due date + category color dot
-- Action buttons (small, pill style): "Next week" | "Drop" | "Focus now"
-- No scary warnings
-
-NEXT WEEK SECTION:
-- "What are your top 3 priorities for next week?"
-- Three inputs (styled as form fields, not inline edits)
-- Saved to settings table (add next_week_priorities TEXT column via new migration)
-
-CATEGORY BREAKDOWN:
-- CSS-only proportional bars (div widths), no chart lib
-- Category name + color + completed task count
-
-TONE: Supportive friend reviewing the week, not a productivity judge.
-```
-
----
-
-## SESSION 8 — Settings & Dark Mode ✅ SHIPPED
-
-**Goal:** User preferences + dark mode + data export.
-
-```
-Read CLAUDE.md. Build the Settings page and dark mode.
-
-File: apps/desktop/src/pages/settings.tsx
-
-DESIGN REFERENCE:
-Prototype in design-reference/pages.jsx — see SettingsPage().
-The updater UI (Check for Updates card) is ALREADY BUILT in settings.tsx — do not rebuild it.
-New sections to add around it, matching the design:
-- All cards use .card class
-- Section labels use DM Mono 11px uppercase pattern
-- Toggle switches use .toggle-sw class (see index.css)
-- Theme pills: same pill button pattern as priority/due-date pickers in QuickAddModal
-- Color swatches for category recolor: 8 preset circles, 24×24px, border-radius 50%,
-  selected state has border 2px solid that color + box-shadow 1px 1.5px 0 that color
-
-SECTIONS (build around existing updater card):
-
-Profile:
-- Display name (editable input, border-bottom-only style) → updateSettings({ display_name })
-- "Used for your morning greeting" — Geist 11px var(--text-faint)
-
-Appearance:
-- Theme: Light | Dark | System (three pill buttons, same pattern as priority picker)
-- On change: updateSettings({ theme }) AND apply dark class to document root
-- System: match prefers-color-scheme
-
-Focus:
-- Daily focus limit: DM Mono number input, color #c9566e, background var(--bg-card-lite)
-- → updateSettings({ daily_focus_limit })
-
-Categories:
-- List all from useCategories()
-- Drag to reorder: @dnd-kit/sortable
-- Rename: click name → inline input (border-bottom-only on focus)
-- Recolor: click dot → 8 color swatch picker popover
-- Archive toggle: .toggle-sw
-
-Data:
-- "Export my data" button (btn-primary style)
-- Fetch all tables → JSON → tauri-plugin-fs save dialog
-- Format: { tasks, habits, categories, books, settings }
-
-DARK MODE:
-All tokens already have dark equivalents — apply .dark to #root.
-Dark mode is triggered by the theme setting. On app startup in App.tsx,
-read settings.theme and apply the class immediately before first render
-to avoid flash of wrong theme.
-```
 
 ---
 

@@ -5,7 +5,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { getDashboardData, getTasks, getSubtasks, createTask, updateTask, brainDump, dropTask, getRecurrence, setRecurrence, getWeeklyReviewData } from '@/lib/queries/tasks'
-import { getHabits, createHabit, updateHabit, toggleHabitToday, getHabitHistory, getCategories, createCategory, updateCategory, getBooks, createBook, updateBook } from '@/lib/queries/habits-categories-books'
+import { getHabits, createHabit, updateHabit, toggleHabitToday, getHabitHistory, getCategories, createCategory, updateCategory, getBooks, createBook, updateBook, removeBook } from '@/lib/queries/habits-categories-books'
 import { getSettings, updateSettings } from '@/lib/queries/settings'
 import { todayDateStr } from '@/lib/db'
 import type { CreateTaskInput, Recurrence } from '@/lib/queries/tasks'
@@ -259,6 +259,28 @@ export function useUpdateBook() {
     onError: (_err, _vars, ctx: any) => {
       for (const [key, books] of ctx?.snapshots ?? []) qc.setQueryData(key, books)
       toast.error('Failed to update book')
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['books'] }),
+  })
+}
+
+/** Mirrors useDropTask: optimistically drop from every books cache entry,
+ *  the page captures the previous status itself for the undo toast. */
+export function useRemoveBook() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => removeBook(id),
+    onMutate: async (id) => {
+      await qc.cancelQueries({ queryKey: ['books'] })
+      const snapshots = qc.getQueriesData<Book[]>({ queryKey: ['books'] })
+      for (const [key, books] of snapshots) {
+        if (Array.isArray(books)) qc.setQueryData(key, books.filter(b => b.id !== id))
+      }
+      return { snapshots }
+    },
+    onError: (_err, _id, ctx: any) => {
+      for (const [key, books] of ctx?.snapshots ?? []) qc.setQueryData(key, books)
+      toast.error('Failed to remove book')
     },
     onSettled: () => qc.invalidateQueries({ queryKey: ['books'] }),
   })
