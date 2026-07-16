@@ -9,7 +9,7 @@ interface Props {
 
 /**
  * 30-day consistency grid. Oldest day first, today last, so the eye reads
- * left→right toward now. Missed days are quiet cream squares — never red.
+ * left-to-right toward now. Missed days are quiet tonal squares — never red.
  */
 export function HabitDotGrid({ color, doneDates, days = 30 }: Props) {
   const cells: Array<{ date: string; done: boolean }> = []
@@ -29,9 +29,8 @@ export function HabitDotGrid({ color, doneDates, days = 30 }: Props) {
           style={{
             width: 18,
             height: 18,
-            borderRadius: 4,
-            background: done ? color + 'cc' : 'var(--bg-card-lite)',
-            border: `1px solid ${done ? color + '44' : 'var(--border)'}`,
+            borderRadius: 5,
+            background: done ? color : 'var(--bg-card-lite)',
             transition: 'all 0.15s',
           }}
         />

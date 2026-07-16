@@ -1,28 +1,38 @@
 import type { Priority } from '@/lib/queries/tasks'
 
 export interface CategoryTheme {
+  /** Dot / bar / strong-accent color. CSS var — flips automatically in dark mode. */
   ink:  string
+  /** Pale pill background. CSS var — flips automatically in dark mode. */
   wash: string
+  /** Text on wash (>=4.5:1 in both modes). CSS var. */
+  text: string
   name: string
 }
 
 /**
- * Design-palette mapping, keyed by the DB category ids seeded in migration 001.
- * The DB's `color` column is ignored for dashboard rendering — the design
- * specifies these specific warm colors and the README is the source of truth.
+ * Quiet Garden category palette, keyed by the DB category ids seeded in
+ * migration 001. Values are CSS variables defined in index.css (light + dark
+ * twins), so dark mode flips without any TS involvement. The literal hex
+ * values live only in index.css — single source of truth.
  */
 export const CATEGORY_THEME: Record<string, CategoryTheme> = {
-  cat_work:    { ink: '#2563a8', wash: '#e8f0fb', name: 'Work'    },
-  cat_school:  { ink: '#96334d', wash: '#fdeef2', name: 'School'  },
-  cat_health:  { ink: '#b34040', wash: '#fceaea', name: 'Health'  },
-  cat_admin:   { ink: '#b45309', wash: '#fef3dc', name: 'Admin'   },
-  cat_growth:  { ink: '#0d7a54', wash: '#e4f5ee', name: 'Growth'  },
-  cat_reading: { ink: '#9d1f6e', wash: '#fce8f3', name: 'Reading' },
-  cat_social:  { ink: '#b84d0a', wash: '#fef0e6', name: 'Social'  },
-  cat_home:    { ink: '#4b5563', wash: '#f0f0ef', name: 'Home'    },
+  cat_work:    { ink: 'var(--cat-work)',    wash: 'var(--cat-work-wash)',    text: 'var(--cat-work-text)',    name: 'Work'    },
+  cat_school:  { ink: 'var(--cat-school)',  wash: 'var(--cat-school-wash)',  text: 'var(--cat-school-text)',  name: 'School'  },
+  cat_health:  { ink: 'var(--cat-health)',  wash: 'var(--cat-health-wash)',  text: 'var(--cat-health-text)',  name: 'Health'  },
+  cat_admin:   { ink: 'var(--cat-admin)',   wash: 'var(--cat-admin-wash)',   text: 'var(--cat-admin-text)',   name: 'Admin'   },
+  cat_growth:  { ink: 'var(--cat-growth)',  wash: 'var(--cat-growth-wash)',  text: 'var(--cat-growth-text)',  name: 'Growth'  },
+  cat_reading: { ink: 'var(--cat-reading)', wash: 'var(--cat-reading-wash)', text: 'var(--cat-reading-text)', name: 'Reading' },
+  cat_social:  { ink: 'var(--cat-social)',  wash: 'var(--cat-social-wash)',  text: 'var(--cat-social-text)',  name: 'Social'  },
+  cat_home:    { ink: 'var(--cat-home)',    wash: 'var(--cat-home-wash)',    text: 'var(--cat-home-text)',    name: 'Home'    },
 }
 
-const FALLBACK: CategoryTheme = { ink: '#a08060', wash: '#f5ede0', name: 'Uncategorized' }
+const FALLBACK: CategoryTheme = {
+  ink:  'var(--cat-home)',
+  wash: 'var(--cat-home-wash)',
+  text: 'var(--cat-home-text)',
+  name: 'Uncategorized',
+}
 
 export function getCategoryTheme(
   categoryId: string | null | undefined,
@@ -33,14 +43,19 @@ export function getCategoryTheme(
   return FALLBACK
 }
 
-/** 8 preset swatches for habits + new categories — the category ink palette. */
+/**
+ * 8 preset swatches for habits + new categories.
+ * Literal hexes (light-mode inks) because these are persisted to the DB
+ * `color` column — CSS vars can't be stored there.
+ */
 export const PRESET_COLORS = [
-  '#2563a8', '#96334d', '#b34040', '#b45309',
-  '#0d7a54', '#9d1f6e', '#b84d0a', '#4b5563',
+  '#4270c0', '#7a5bc8', '#bd5b68', '#99690a',
+  '#5c9a33', '#ad4796', '#b55c22', '#6a7570',
 ] as const
 
+/** Priority colors — CSS vars so dark mode flips automatically. */
 export const PRIO: Record<Priority, string> = {
-  HIGH:   '#b34040',
-  MEDIUM: '#b45309',
-  LOW:    '#0d7a54',
+  HIGH:   'var(--prio-high)',
+  MEDIUM: 'var(--prio-medium)',
+  LOW:    'var(--prio-low)',
 }

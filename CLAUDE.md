@@ -175,31 +175,40 @@ Mobile pages call these helpers directly — no HTTP, no server needed.
 
 ## Desktop: Color Palette & Component Classes
 
-> The canonical token set is the "Design Reference" section at the bottom of this file
-> (warm rose/cream palette). Category and priority colors live in code at
-> `apps/desktop/src/lib/category-colors.ts` — use `getCategoryTheme()` / `PRIO`,
-> never hardcode category hexes in components.
+> **Theme: "Quiet Garden"** (redesign shipped 2026-07 from the Claude Design handoff —
+> reference file `design-reference/dashboard.html`, gitignored but the single source of truth).
+> The canonical token set is the "Design Reference" section at the bottom of this file.
+> Category/priority colors are CSS vars (`--cat-*`, `--prio-*`) defined in `index.css`;
+> `category-colors.ts` maps to them via `getCategoryTheme()` / `PRIO` — never hardcode hexes.
 
 ```
-Primary:  #c9566e  (rose)   — buttons, active states, FAB, checked states
-Surface:  #fdf6ed  (--bg-page, warm cream)
-Card:     #fffef9  (--bg-card)
-Border:   #e2d4c0  (--border)
+Accent:   #33705c  (pine)   — buttons, active states, FAB, checked states
+                              (dark mode accent: #7cbf9e; text on accent = var(--bg-page))
+Surface:  #eef2ec  (--bg-page, sage)
+Sidebar:  #e3e9e0  (--bg-sidebar, darker sage step)
+Card:     #ffffff  (--bg-card)  ·  inset #f2f6f1 (--bg-card-lite)
 
-Category inks (from category-colors.ts, keyed by seeded DB category ids):
-  work #2563a8 · school #96334d · health #b34040 · admin #b45309
-  growth #0d7a54 · reading #9d1f6e · social #b84d0a · home #4b5563
-Each has a matching pale wash for pill backgrounds.
+Depth = tonal layering ONLY. No borders and no shadows on surfaces.
+Floating layers (FAB, modal, menus, toasts, bulk bar) carry ONE soft blur shadow.
+Retired border/shadow tokens are set to `transparent`.
 
-Priority colors (PRIO in category-colors.ts):
-  HIGH #b34040 · MEDIUM #b45309 · LOW #0d7a54
+Category inks (CSS vars in index.css, light + dark twins; keyed by seeded ids):
+  work #4270c0 · school #7a5bc8 · health #bd5b68 · admin #99690a
+  growth #5c9a33 · reading #ad4796 · social #b55c22 · home #6a7570
+Each has --cat-*-wash (pill bg) and --cat-*-text (text on wash, ≥4.5:1).
+
+Priority colors: --prio-high #bd5b68 · --prio-medium #99690a · --prio-low #6a7570
+P1: priority dots are gone from rows — HIGH = inset ring on the checkbox.
 ```
 
 Utility classes in `index.css`:
-- `.card` — warm card with flat offset shadow (see Design Reference)
-- `.btn-primary` — filled rose button
-- `.btn-ghost` — text-only hover button
-- `.priority-dot-HIGH/MEDIUM/LOW` — colored dot
+- `.card` / `.card-lite` — tonal cards, radius 20/13, no border/shadow
+- `.btn-primary` — filled pine button · `.btn-ghost` · `.btn-pill-add`
+- `.chip` / `.chip.sel` — filled selectable chips (selected = wash + ink text)
+- `.input` / `.textarea` — filled fields, 2px accent focus ring
+- `.row-action` — hover-revealed row buttons (P9) · `.more-row` (P5)
+- `.section-label` — DM Mono 10.5px uppercase
+- `.subbar` / `.sub-item` — borderless category rail
 - `.scroll-panel` — scrollable area with thin scrollbar
 
 Always use `cn()` from `lib/utils.ts` for conditional Tailwind.
@@ -283,17 +292,17 @@ Prerequisites:
 # ADHD Life — Claude Code Session Plan
 ## Design Source of Truth
 
-> **Before every session:** The visual design for this app lives in a Claude Design project.
-> All component styles, tokens, spacing, shadows, typography, and interaction patterns
-> must be pulled from there — do NOT invent new UI. The design file is the reference.
+> **Before every session:** The visual design lives in a Claude Design project.
+> Current theme: **"Quiet Garden"** (shipped 2026-07). Do NOT invent new UI.
 >
-> **Design file location:** `design-reference/dashboard.html` (and supporting files
-> `design-reference/app-components.jsx`, `design-reference/dashboard-cards.jsx`,
-> `design-reference/pages.jsx`)
+> **Design file location:** `design-reference/dashboard.html` — the interactive Quiet
+> Garden handoff (all pages + spec appendix). `design-reference/README.md` maps the
+> P1–P12 approved pitches to code. (Old `*.jsx` prototype files in that folder are the
+> retired rose/cream design — ignore them.)
 >
-> Read CLAUDE.md for the full design token reference (colors, shadows, radii, typography).
-> The `## Design Reference` section of CLAUDE.md is the canonical spec extracted from the
-> design file — use it as your lookup table when writing component CSS.
+> The `## Design Reference` section at the bottom of this file is the canonical spec.
+> NOTE: the session logs below predate the redesign — their visual details (Lora italic,
+> rose #c9566e, offset shadows, dashed borders) are historical; follow Quiet Garden.
 
 ---
 
@@ -752,228 +761,165 @@ eas build --platform android --profile preview
 10. **Mobile and desktop share zero runtime code** — they have separate DBs and separate React trees. That is intentional.
 
 ---
-
-# Design Reference
+# Design Reference — "Quiet Garden"
 
 ## Source of truth
 
-All UI in this project must match the visual language defined in `design-reference/dashboard.html`.
-Read that file before building any new component or page. The supporting component files are:
-
-- `design-reference/app-components.jsx` — icons, shared primitives
-- `design-reference/dashboard-cards.jsx` — card components, task rows, habit circles
-- `design-reference/pages.jsx` — full page layouts
+All UI must match `design-reference/dashboard.html` (the Quiet Garden handoff — an
+interactive full-app reference with every page, the quick-add modal, dark toggle, and a
+spec appendix). The folder is gitignored; if it's missing, re-export from the Claude
+Design project. `design-reference/README.md` is the handoff doc with the P1–P12 pitch map.
 
 ---
 
 ## Typography
 
-| Role | Font | Size | Weight | Notes |
-|---|---|---|---|---|
-| UI / body | `'Geist', system-ui, sans-serif` | 13–15px | 400–600 | Default for all interactive elements |
-| Headings / modal titles | `'Lora', serif` | 14–15px | 600 | Card titles, modal headers |
-| Section labels | `'DM Mono', monospace` | 11px | 400–500 | Uppercase, letter-spacing: 0.06em |
-| Cancel / ghost actions | `'Lora', serif` | 13px | 400 | font-style: italic |
-| Placeholder text | `'Lora', serif` | — | 400 | font-style: italic |
+Two faces only. **Lora and Geist are retired. No italics anywhere.**
+
+| Role | Font | Size | Weight |
+|---|---|---|---|
+| ALL UI text | `'Hanken Grotesk', system-ui, sans-serif` | 13–15px | 400 body · 500 rows/labels · 600 titles/buttons · 700 greeting/logo |
+| Numbers ONLY (counts, streaks, times, dates) | `'DM Mono', monospace` | 10–11px (stat numbers up to 26) | 400–500 |
+
+Section labels: DM Mono 10.5px uppercase, letter-spacing 0.08em (`.section-label`).
+Placeholders: `--text-faint`, never italic (P11).
 
 ---
 
 ## Color tokens
 
-Use CSS variables exclusively — never hardcode a color that has a token equivalent.
-The full token set (light + dark) lives in the `<style>` block of `dashboard.html`.
+Use CSS variables exclusively. Full light + dark sheet lives in `apps/desktop/src/index.css`
+(same values as the `<style>` block of `design-reference/dashboard.html`).
 
-| Token | Light value | Purpose |
+| Token | Light | Purpose |
 |---|---|---|
-| `--bg-page` | `#fdf6ed` | Page background |
-| `--bg-card` | `#fffef9` | Card / modal background |
-| `--bg-card-lite` | `#faf5ea` | Subtle card variant |
-| `--bg-hover` | `#fdf0df` | Row hover state |
-| `--border` | `#e2d4c0` | Default border |
-| `--text-primary` | `#2d1f14` | Headings, strong text |
-| `--text-body` | `#3d2b1a` | Body copy |
-| `--text-muted` | `#a08060` | Secondary labels |
-| `--text-faint` | `#c4a882` | Placeholders, disabled |
-| `--text-mono` | `#b89c80` | DM Mono labels |
-| `--shadow` | `#dfd0b8` | Flat offset shadow color |
-| `--input-border` | `#e2d4c0` | Input border (bottom only) |
-| `--modal-overlay` | `rgba(45,31,20,0.28)` | Modal backdrop |
+| `--bg-page` | `#eef2ec` | Page (sage) |
+| `--bg-card` | `#ffffff` | Cards / modals |
+| `--bg-card-lite` | `#f2f6f1` | Inset panels, filled inputs, chips |
+| `--bg-sidebar` | `#e3e9e0` | Sidebar, week-strip chips, theme toggle |
+| `--bg-hover` | `#e7ede6` | Row hover, unchecked checkboxes, habit circles |
+| `--bg-accent` | `#e1efe7` | Accent wash (selected chips, done chip) |
+| `--text-primary` | `#1d2620` | Headings |
+| `--text-body` | `#37423a` | Body copy |
+| `--text-muted` | `#5b6a5f` | Secondary labels (≥4.5:1 everywhere) |
+| `--text-faint` | `#93a297` | Placeholders only |
+| `--text-accent` | `#2c6350` | Accent text, links |
+| `--accent` | `#33705c` | Pine accent (dark: `#7cbf9e`) |
+| `--accent-deep` | `#24513f` | Button hover fill |
 
-Named accent values (use directly, not as vars):
-
-| Name | Value | Usage |
-|---|---|---|
-| Primary | `#c9566e` | Buttons, active dots, FAB, checked states |
-| Primary border | `#96334d` | Border + shadow on primary buttons |
-| Primary wash | `#c9566e18` | Selected pill background |
-
-Priority colors: use `PRIO` from `apps/desktop/src/lib/category-colors.ts` —
-High `#b34040` · Medium `#b45309` · Low `#0d7a54` (the shipped values; an older
-draft of this doc listed rose-scale values, which no longer apply).
+Text on accent fills is `var(--bg-page)`, **not** hardcoded white (dark mode flips it).
+Category (`--cat-*`, `--cat-*-wash`, `--cat-*-text`) and priority (`--prio-*`) vars are in
+`index.css` with dark twins; `category-colors.ts` reads them so TS never holds hexes
+(exception: `PRESET_COLORS` — persisted to the DB `color` column).
 
 ---
 
-## Shadows
+## Depth
 
-All shadows are **flat offset** (no blur). Never use `box-shadow` with a blur radius for UI chrome.
+**Tonal layering only.** No borders and no shadows on any surface — separation comes from
+background steps: page → sidebar → card → inset.
 
-| Context | Value |
+Exceptions (floating layers get ONE soft blur shadow):
+
+| Layer | Shadow |
 |---|---|
-| Small card / pill | `2px 2.5px 0px var(--shadow)` |
-| Standard card | `3px 4px 0px var(--shadow)` |
-| Modal | `5px 6px 0px var(--shadow)` |
-| Primary button | `2px 2.5px 0 #96334d` |
-| Accent shadow (checked checkbox, habit) | `1px 1.5px 0px var(--check-shadow)` |
+| Modal | `0 20px 50px rgba(10,15,10,.28)` |
+| Menus / toasts / bulk bar | `0 12px 32px rgba(10,15,10,.18)` |
+| FAB | `0 6px 16px var(--fab-shadow)` |
+| Input focus | `0 0 0 2px var(--accent)` ring |
 
-Active state: shift shadow down — use `transform: translate(2px, 2px)` + reduce shadow.
+Never use flat offset shadows (the old style). Never put a border on a card.
 
 ---
 
-## Border radii
+## Radii
 
 | Element | Radius |
 |---|---|
-| Modal | 16px |
-| Card | 14px |
-| Card lite | 10px |
-| Button / pill | 7–9px |
-| Nav item | 9px |
-| Checkbox | 4px |
-| Toggle track | 9px |
+| Card / modal | 20px |
+| Card-lite / inset / menus | 13px |
+| Buttons / inputs / nav items | 11px |
+| Chips / pills | 999px |
+| Task rows / row actions | 8px |
+| Checkbox | 6px |
+| Dot-grid cells | 5px |
+
+---
+
+## Spacing (P10 — 8px grid)
+
+Card padding 24 · grid gaps 16 · task rows min-height 40, padding 10/8.
 
 ---
 
 ## Component patterns
 
 ### Cards
-```css
-background: var(--bg-card);
-border-radius: 14px;
-border: 1.5px solid var(--border);
-box-shadow: 3px 4px 0px var(--shadow);
-padding: 20px 22px;
-```
-Card title: Lora 600 14px `var(--text-primary)`. DM Mono count/meta flush right.
+`background: var(--bg-card); border-radius: 20px; border: none; box-shadow: none; padding: 24px;`
+Title: Hanken 600 13px `--text-primary`, no icons (P2); DM Mono count flush right (Focus only).
 
-### Pill buttons (category / priority / due date)
-Two states only:
+### Chips (category / priority / due / theme)
+`.chip`: filled `--bg-card-lite`, radius 999, Hanken 12/500, no border.
+Selected: category/priority chips take their wash bg + `--cat-*-text`; due/generic take `.chip.sel` (accent wash).
 
-```css
-/* Unselected */
-background: transparent;
-border: 1.5px solid {color}44;
-color: var(--text-sidebar);
-font-weight: 400;
-
-/* Selected */
-background: {color}18;
-border: 1.5px solid {color};
-color: {color};
-font-weight: 600;
-```
-Font: Geist 12px. Border-radius: 7px. Padding: 4px 9px. Transition: all 0.12s.
-
-### Primary action button
-```css
-background: #c9566e;
-border: 2px solid #96334d;
-border-radius: 9px;
-box-shadow: 2px 2.5px 0 #96334d;
-color: white;
-font-family: 'Geist', sans-serif;
-font-size: 13px;
-font-weight: 600;
-padding: 7px 18px;
-```
-Disabled: `background: var(--bg-card-lite)`, `border: var(--border)`, `color: var(--text-faint)`, no shadow.
+### Primary button
+`.btn-primary`: fill `--accent`, text `var(--bg-page)`, radius 11, 13/600, padding 9/18.
+Hover: `--accent-deep` fill. Active: `scale(.97)`. No border, no offset shadow.
 
 ### Inputs
-Border-bottom only. No full border, no background fill.
-```css
-border: none;
-border-bottom: 1.5px solid var(--input-border);
-background: transparent;
-font-family: 'Geist', sans-serif;
-font-size: 15px;
-color: var(--text-primary);
-padding: 8px 0;
-outline: none;
-```
-Focus: `border-bottom-color: #c9566e`. Placeholder: Lora italic `var(--text-faint)`.
+`.input` / `.textarea`: filled `--bg-card-lite`, radius 11, no border at rest;
+focus = 2px accent ring. Placeholder `--text-faint`, never italic.
 
 ### Task rows
-```css
-display: flex;
-align-items: center;
-gap: 9px;
-padding: 8px 5px;
-border-bottom: 1px solid var(--task-border);
-border-radius: 7px;
-transition: background 0.12s;
-```
-Hover: `background: var(--bg-hover)`. Last row: no border-bottom.
-
-### Modals
-```css
-background: var(--bg-card);
-border: 1.5px solid var(--border);
-border-radius: 16px;
-box-shadow: 5px 6px 0px var(--shadow);
-padding: 24px;
-max-width: 420px;
-```
-Overlay: `background: var(--modal-overlay)` + `backdrop-filter: blur(3px)`.
-
-Enter animation (Framer Motion or CSS keyframe):
-```
-opacity: 0 → 1, scale: 0.96 → 1, translateY: 8px → 0
-duration: 0.18s, easing: ease
-```
-
-### Section labels (inside modals / forms)
-```css
-font-family: 'DM Mono', monospace;
-font-size: 11px;
-color: var(--text-mono);
-font-weight: 600;
-letter-spacing: 0.06em;
-text-transform: uppercase;
-margin-bottom: 8px;
-```
+Checkbox · title 13.5/500 · category dot 8px · hover-revealed `.row-action` ⋯ (P9).
+HIGH priority = inset ring on checkbox (P1). Complete = 250ms fade + sink (P6),
+then strikethrough at ~50% opacity.
 
 ### Checkboxes
-```css
-width: 18px; height: 18px;
-border-radius: 4px;
-border: 1.5px solid var(--text-faint);
-```
-Checked: `background: #c9566e`, `border-color: #b0435c`, `box-shadow: 1px 1.5px 0 var(--check-shadow)`.
+18px, radius 6, filled `--bg-hover`, no border. Done: fill `--accent`, check stroked `var(--bg-page)`.
+
+### Habit circles
+52px, filled `--bg-hover`. Done: `--accent` fill. Press: `scale(.94)`.
+Streak numbers DM Mono; render only at ≥3 days (P7); no flame glyphs.
+Dot grid: 18px radius-5 squares — done = habit ink, missed = `--bg-card-lite`, never red.
+
+### Modals
+bg `--bg-card`, radius 20, one blur shadow, overlay `--modal-overlay` + 3px blur.
+Enter: opacity 0→1, scale .96→1, translateY 8→0, 0.18s ease.
+
+### Dashboard header band (P12)
+No topbar chrome — sits on the page. Left: greeting 20/700 + DM Mono date + one quote
+line in `--text-quote` (P3). Right: `.wk-mini` week strip (P4) + done chip + theme toggle.
+
+---
+
+## Responsive (~900px, implemented at `@media (max-width: 1100px)`)
+
+Sidebar → 56px icon rail · dash grid → 1 column (max 560) · content padding 20/24 ·
+header wraps, `.wk-mini` hides first · Tasks category rail (`.subbar`) hides.
 
 ---
 
 ## Transitions
 
-All interactive elements: `transition: all 0.12s` to `transition: all 0.2s`.  
-Never use transitions longer than 0.3s for UI chrome.  
-Theme (bg/color changes): 0.3s.
+Interactive elements 0.12–0.2s; row sink 0.25s; theme changes 0.3s. Nothing longer.
 
 ---
 
 ## Dark mode
 
-Apply via `.dark` class on `#root`. All tokens have dark equivalents in `dashboard.html`.
-Never hardcode light-only values — always use a CSS var so dark mode works for free.
-
----
+Apply via `.dark` class on `#root`. Every token (including `--cat-*` / `--prio-*`) has a
+dark twin in `index.css` — never hardcode light-only values.
 
 ## Do not
 
-- Use blur-radius box-shadows for cards or modals
-- Invent colors not in the token set (use oklch only if a genuinely new hue is needed)
-- Use Inter, Roboto, or system fonts — always load Geist + Lora + DM Mono from Google Fonts
-- Use emoji in UI chrome
-- Add gradient backgrounds
-- Use rounded-corner containers with a left-border accent (common AI trope — avoid)
+- Put borders or shadows on cards/surfaces (tonal steps only)
+- Use flat offset shadows anywhere
+- Use Lora, Geist, or any italics
+- Use DM Mono for words (numbers only)
+- Use emoji in UI chrome (inline stroke SVGs only; ✦ logo mark and ★ stars are the exceptions)
+- Hardcode white text on accent fills (use `var(--bg-page)`)
+- Show red anywhere for missed/overdue states
+- Use rounded-corner containers with a left-border accent (AI trope — the 3px upcoming-card
+  time bar per the reference is the one sanctioned use)
 
-
-*Built with love by Andrew, for his wife. 💜*

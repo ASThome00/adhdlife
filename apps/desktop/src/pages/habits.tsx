@@ -17,7 +17,7 @@ export function HabitsPage() {
   return (
     <>
       <header className="topbar" data-tauri-drag-region>
-        <h1 style={{ fontFamily: 'Lora, serif', fontStyle: 'italic', fontSize: 19, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+        <h1 className="topbar-title">
           Habits
         </h1>
         <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: 'var(--text-mono)' }}>
@@ -30,11 +30,11 @@ export function HabitsPage() {
           <AddHabitForm />
 
           {isLoading ? (
-            <div style={{ fontFamily: 'Lora, serif', fontStyle: 'italic', fontSize: 14, color: 'var(--text-mono)', padding: '24px 4px' }}>
+            <div style={{ fontFamily: 'inherit', fontStyle: 'normal', fontSize: 14, color: 'var(--text-mono)', padding: '24px 4px' }}>
               Loading your habits…
             </div>
           ) : habits.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', fontFamily: 'Lora, serif', fontStyle: 'italic', fontSize: 15, color: 'var(--text-faint)' }}>
+            <div style={{ textAlign: 'center', padding: '40px 0', fontFamily: 'inherit', fontStyle: 'normal', fontSize: 15, color: 'var(--text-faint)' }}>
               No habits yet. Start with one tiny thing — that's how streaks begin.
             </div>
           ) : (

@@ -16,22 +16,17 @@ export function ProfileCard() {
 
   return (
     <div className="card">
-      <div className="card-title"><span aria-hidden>👤</span> Profile</div>
+      <div className="card-title">Profile</div>
       <input
+        className="input"
         value={name}
         onChange={e => setName(e.target.value)}
         onBlur={save}
         onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
         placeholder="Your name"
-        style={{
-          width: '100%', fontFamily: 'Geist, sans-serif', fontSize: 15,
-          color: 'var(--text-primary)', background: 'transparent', border: 'none',
-          borderBottom: '1.5px solid var(--input-border)', padding: '8px 0',
-          outline: 'none', transition: 'border-color 0.2s',
-        }}
-        onFocus={e => (e.target.style.borderBottomColor = 'var(--accent)')}
+        style={{ fontSize: 15 }}
       />
-      <p style={{ fontFamily: 'Geist, sans-serif', fontSize: 11, color: 'var(--text-faint)', marginTop: 6 }}>
+      <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 6 }}>
         Used for your morning greeting
       </p>
     </div>
@@ -49,7 +44,7 @@ export function AppearanceCard() {
 
   return (
     <div className="card">
-      <div className="card-title"><span aria-hidden>🎨</span> Appearance</div>
+      <div className="card-title">Appearance</div>
       <div style={{ display: 'flex', gap: 6 }}>
         {THEME_OPTIONS.map(({ k, label }) => {
           const selected = theme === k
@@ -57,23 +52,15 @@ export function AppearanceCard() {
             <button
               key={k}
               type="button"
+              className={selected ? 'chip sel' : 'chip'}
               onClick={() => setTheme(k)}
-              style={{
-                padding: '5px 14px', borderRadius: 7,
-                fontFamily: 'Geist, sans-serif', fontSize: 12,
-                fontWeight: selected ? 600 : 400, cursor: 'pointer',
-                border: `1.5px solid ${selected ? 'var(--accent)' : 'var(--border)'}`,
-                background: selected ? 'var(--bg-accent)' : 'transparent',
-                color: selected ? 'var(--text-accent)' : 'var(--text-sidebar)',
-                transition: 'all 0.12s',
-              }}
             >
               {label}
             </button>
           )
         })}
       </div>
-      <p style={{ fontFamily: 'Geist, sans-serif', fontSize: 11, color: 'var(--text-faint)', marginTop: 10 }}>
+      <p style={{ fontSize: 11, color: 'var(--text-faint)', marginTop: 10 }}>
         System follows your computer's light/dark preference
       </p>
     </div>
@@ -95,7 +82,7 @@ export function FocusCard() {
 
   return (
     <div className="card">
-      <div className="card-title"><span aria-hidden>⚡</span> Daily focus limit</div>
+      <div className="card-title">Daily focus limit</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <input
           value={limit}
@@ -103,15 +90,10 @@ export function FocusCard() {
           onBlur={save}
           onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur() }}
           inputMode="numeric"
-          style={{
-            width: 64, fontFamily: 'DM Mono, monospace', fontSize: 20, textAlign: 'center',
-            color: 'var(--accent)', background: 'var(--bg-card-lite)',
-            border: '1.5px solid var(--input-border)', borderRadius: 8, padding: 8,
-            outline: 'none', transition: 'border-color 0.2s',
-          }}
-          onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
+          className="input"
+          style={{ width: 64, fontFamily: 'DM Mono, monospace', fontSize: 20, textAlign: 'center', color: 'var(--text-accent)' }}
         />
-        <span style={{ fontFamily: 'Geist, sans-serif', fontSize: 13, color: 'var(--text-muted)' }}>
+        <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
           focus tasks per day, max
         </span>
       </div>

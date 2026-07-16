@@ -13,7 +13,7 @@ type UpdateState =
   | { status: 'ready' }
   | { status: 'error'; message: string }
 
-const MUTED: React.CSSProperties = { fontFamily: 'Geist, sans-serif', fontSize: 13, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 8 }
+const MUTED: React.CSSProperties = { fontFamily: 'inherit', fontSize: 13, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 8 }
 
 export function UpdaterCard() {
   const [appVersion, setAppVersion] = useState<string>('')
@@ -59,7 +59,7 @@ export function UpdaterCard() {
     <div className="card">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div>
-          <div className="card-title" style={{ marginBottom: 2 }}><span aria-hidden>🔄</span> Updates</div>
+          <div className="card-title" style={{ marginBottom: 2 }}>Updates</div>
           <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: 'var(--text-mono)' }}>
             Version {appVersion || '…'}
           </div>
@@ -92,7 +92,7 @@ export function UpdaterCard() {
       {state.status === 'available' && (
         <div className="card-lite" style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-            <span style={{ fontFamily: 'Geist, sans-serif', fontSize: 13, fontWeight: 600, color: 'var(--text-accent)' }}>
+            <span style={{ fontFamily: 'inherit', fontSize: 13, fontWeight: 600, color: 'var(--text-accent)' }}>
               Version {state.version} available
             </span>
             <button onClick={handleInstall} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
@@ -100,7 +100,7 @@ export function UpdaterCard() {
             </button>
           </div>
           {state.notes && (
-            <p style={{ fontFamily: 'Geist, sans-serif', fontSize: 12.5, color: 'var(--text-body)', whiteSpace: 'pre-line', lineHeight: 1.6 }}>
+            <p style={{ fontFamily: 'inherit', fontSize: 12.5, color: 'var(--text-body)', whiteSpace: 'pre-line', lineHeight: 1.6 }}>
               {state.notes}
             </p>
           )}

@@ -5,8 +5,6 @@ import { FocusTasksCard } from '@/components/dashboard/focus-tasks-card'
 import { HabitsCard } from '@/components/dashboard/habits-card'
 import { CarriedOverAccordion } from '@/components/dashboard/carried-over-accordion'
 import { UpcomingCard } from '@/components/dashboard/upcoming-card'
-import { WeekStrip } from '@/components/dashboard/week-strip'
-import { MotivationQuote } from '@/components/dashboard/motivation-quote'
 
 export function DashboardPage() {
   const { data, isLoading } = useDashboard()
@@ -32,29 +30,25 @@ export function DashboardPage() {
         {isLoading ? (
           <div
             style={{
-              fontFamily: 'Lora, serif',
-              fontStyle: 'italic',
               fontSize: 14,
-              color: 'var(--text-mono)',
+              color: 'var(--text-muted)',
               padding: '24px 4px',
             }}
           >
             Loading your day…
           </div>
         ) : (
+          /* P12 — grid holds only Focus / Habits / Still on the list / Upcoming;
+             quote + week strip moved to the header band (P3/P4) */
           <div className="dash-grid">
-            {/* Left column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div className="dash-col">
               <FocusTasksCard tasks={focusTasks} completedFocusToday={data?.completedFocusToday ?? 0} />
               <HabitsCard habits={habits as any} />
-              <MotivationQuote />
             </div>
 
-            {/* Right column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div className="dash-col">
               <CarriedOverAccordion tasks={overdueTasks} />
               <UpcomingCard tasks={upcomingToday} />
-              <WeekStrip />
             </div>
           </div>
         )}

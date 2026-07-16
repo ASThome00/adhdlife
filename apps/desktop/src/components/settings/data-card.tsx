@@ -19,9 +19,9 @@ export function DataCard() {
 
   return (
     <div className="card">
-      <div className="card-title"><span aria-hidden>📦</span> Your data</div>
+      <div className="card-title">Your data</div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <p style={{ fontFamily: 'Geist, sans-serif', fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.55, flex: 1 }}>
+        <p style={{ fontFamily: 'inherit', fontSize: 12.5, color: 'var(--text-muted)', lineHeight: 1.55, flex: 1 }}>
           Everything lives on this computer. Export a JSON copy anytime — tasks, habits, books, all of it.
         </p>
         <button type="button" className="btn-primary" onClick={handleExport} disabled={busy}>

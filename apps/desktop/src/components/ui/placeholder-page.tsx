@@ -13,9 +13,7 @@ export function PlaceholderPage({ label }: { label: string }) {
     >
       <div
         style={{
-          fontFamily: 'Lora, serif',
           fontSize: 32,
-          fontStyle: 'italic',
           fontWeight: 500,
           color: 'var(--border)',
         }}
@@ -24,8 +22,6 @@ export function PlaceholderPage({ label }: { label: string }) {
       </div>
       <div
         style={{
-          fontFamily: 'Lora, serif',
-          fontStyle: 'italic',
           fontSize: 18,
           color: 'var(--text-faint)',
         }}
@@ -34,7 +30,6 @@ export function PlaceholderPage({ label }: { label: string }) {
       </div>
       <div
         style={{
-          fontFamily: 'Geist, sans-serif',
           fontSize: 13,
           color: 'var(--text-mono)',
         }}

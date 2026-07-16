@@ -15,20 +15,11 @@ function formatTime(due_time: string | null): string {
 export function UpcomingCard({ tasks }: { tasks: Task[] }) {
   return (
     <div className="card">
-      <div className="card-title">
-        <span aria-hidden>📅</span> Upcoming today
-      </div>
+      {/* P2 — no title icon */}
+      <div className="card-title">Upcoming today</div>
 
       {tasks.length === 0 ? (
-        <p
-          style={{
-            fontFamily: 'Lora, serif',
-            fontStyle: 'italic',
-            fontSize: 13,
-            color: 'var(--text-mono)',
-            padding: '8px 4px',
-          }}
-        >
+        <p style={{ fontSize: 13, color: 'var(--text-faint)', padding: '8px 4px' }}>
           Nothing else on the books. Enjoy the space.
         </p>
       ) : (
@@ -42,7 +33,7 @@ export function UpcomingCard({ tasks }: { tasks: Task[] }) {
                 className="card-lite"
                 style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '11px 14px' }}
               >
-                <div
+                <span
                   style={{
                     width: 3,
                     height: 32,
@@ -54,7 +45,6 @@ export function UpcomingCard({ tasks }: { tasks: Task[] }) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div
                     style={{
-                      fontFamily: 'Geist, sans-serif',
                       fontSize: 13,
                       fontWeight: 500,
                       color: 'var(--text-body)',
@@ -66,14 +56,7 @@ export function UpcomingCard({ tasks }: { tasks: Task[] }) {
                     {t.title}
                   </div>
                   {timeLabel && (
-                    <div
-                      style={{
-                        fontFamily: 'DM Mono, monospace',
-                        fontSize: 11,
-                        color: 'var(--text-muted)',
-                        marginTop: 2,
-                      }}
-                    >
+                    <div className="num" style={{ fontSize: 10.5, color: 'var(--text-muted)', marginTop: 2 }}>
                       {timeLabel}
                     </div>
                   )}

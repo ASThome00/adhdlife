@@ -47,22 +47,8 @@ export function TaskSection({ label, tasks, onComplete, onOpenDetail, onSnooze, 
         >
           <path d="M3 2l4 3-4 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
-        <span style={{
-          fontFamily: 'DM Mono, monospace',
-          fontSize: 11,
-          fontWeight: 500,
-          letterSpacing: '0.06em',
-          textTransform: 'uppercase',
-          color: 'var(--text-mono)',
-        }}>
-          {label}
-        </span>
-        <span style={{
-          fontFamily: 'DM Mono, monospace',
-          fontSize: 10,
-          color: 'var(--text-faint)',
-          marginLeft: 2,
-        }}>
+        <span className="section-label">{label}</span>
+        <span className="num" style={{ fontSize: 10, color: 'var(--text-faint)', marginLeft: 2 }}>
           {tasks.length}
         </span>
       </button>
@@ -128,22 +114,13 @@ function KebabMenu({ task, onEdit, onSnooze, onMoveToToday, onDrop, onFocusToday
 
   return (
     <div ref={ref} style={{ position: 'relative', flexShrink: 0 }} onClick={e => e.stopPropagation()}>
+      {/* P9 — hover-revealed via .row-action (visible on row hover / keyboard focus) */}
       <button
         type="button"
+        className="row-action"
         onClick={e => { e.stopPropagation(); setOpen(o => !o) }}
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          padding: '2px 6px',
-          borderRadius: 5,
-          fontFamily: 'Geist, sans-serif',
-          fontSize: 15,
-          color: 'var(--text-faint)',
-          lineHeight: 1,
-          transition: 'color 0.12s',
-        }}
         title="More options"
+        aria-label="Task menu"
       >
         ⋯
       </button>
@@ -158,8 +135,9 @@ function KebabMenu({ task, onEdit, onSnooze, onMoveToToday, onDrop, onFocusToday
             marginTop: 4,
             zIndex: 200,
             minWidth: 148,
-            padding: '4px 0',
-            boxShadow: '3px 4px 0 var(--shadow)',
+            padding: '6px 0',
+            borderRadius: 13,
+            boxShadow: '0 12px 32px rgba(10, 15, 10, 0.18)',
           }}
         >
           {[
@@ -182,7 +160,7 @@ function KebabMenu({ task, onEdit, onSnooze, onMoveToToday, onDrop, onFocusToday
                 border: 'none',
                 cursor: 'pointer',
                 padding: '7px 14px',
-                fontFamily: 'Geist, sans-serif',
+                fontFamily: 'inherit',
                 fontSize: 13,
                 color: label === 'Drop' ? 'var(--text-accent)' : 'var(--text-body)',
                 transition: 'background 0.1s',

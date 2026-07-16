@@ -45,36 +45,21 @@ export function InboxRow({ task, categories, selected, onToggleSelect, onAssignC
                 <button
                   key={cat.id}
                   type="button"
+                  className="chip"
                   onClick={e => {
                     e.stopPropagation()
                     setCatPickerOpen(false)
                     onAssignCategory(task.id, cat.id)
                   }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    padding: '3px 8px',
-                    borderRadius: 6,
-                    border: `1.5px solid ${theme.ink}44`,
-                    background: 'transparent',
-                    color: 'var(--text-faint)',
-                    fontFamily: 'Geist, sans-serif',
-                    fontSize: 12,
-                    cursor: 'pointer',
-                    transition: 'all 0.1s',
-                  }}
                   onMouseEnter={e => {
                     const el = e.currentTarget
                     el.style.background = theme.wash
-                    el.style.color = theme.ink
-                    el.style.borderColor = theme.ink
+                    el.style.color = theme.text
                   }}
                   onMouseLeave={e => {
                     const el = e.currentTarget
-                    el.style.background = 'transparent'
-                    el.style.color = 'var(--text-faint)'
-                    el.style.borderColor = `${theme.ink}44`
+                    el.style.background = ''
+                    el.style.color = ''
                   }}
                 >
                   <span style={{ width: 6, height: 6, borderRadius: '50%', background: theme.ink, display: 'inline-block' }} />
@@ -84,33 +69,25 @@ export function InboxRow({ task, categories, selected, onToggleSelect, onAssignC
             })}
             <button
               type="button"
+              className="btn-ghost"
+              style={{ fontSize: 12, padding: '5px 10px' }}
               onClick={e => { e.stopPropagation(); setCatPickerOpen(false) }}
-              style={{
-                padding: '3px 8px',
-                borderRadius: 6,
-                border: '1.5px solid var(--border)',
-                background: 'transparent',
-                color: 'var(--text-faint)',
-                fontFamily: 'Lora, serif',
-                fontStyle: 'italic',
-                fontSize: 12,
-                cursor: 'pointer',
-              }}
             >
               cancel
             </button>
           </div>
         ) : (
+          /* P11 — no italics; accent link color per the inbox spec */
           <button
             type="button"
             onClick={e => { e.stopPropagation(); setCatPickerOpen(true) }}
             style={{
               display: 'block',
               marginTop: 4,
-              fontFamily: 'Geist, sans-serif',
+              fontFamily: 'inherit',
               fontSize: 12,
-              color: 'var(--text-faint)',
-              fontStyle: 'italic',
+              fontWeight: 500,
+              color: 'var(--text-accent)',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
@@ -123,35 +100,19 @@ export function InboxRow({ task, categories, selected, onToggleSelect, onAssignC
       </div>
 
       {task.due_date && (
-        <span style={{
-          fontFamily: 'DM Mono, monospace',
-          fontSize: 11,
-          color: 'var(--text-muted)',
-          whiteSpace: 'nowrap',
-          paddingTop: 3,
-        }}>
+        <span className="num" style={{ fontSize: 11, color: 'var(--text-muted)', whiteSpace: 'nowrap', paddingTop: 3 }}>
           {formatDueDate(task.due_date)}
         </span>
       )}
 
+      {/* P9 — drop button hover-revealed */}
       <button
         type="button"
+        className="row-action"
         onClick={e => { e.stopPropagation(); onDrop(task.id) }}
         title="Drop task"
         aria-label="Drop task"
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: 'var(--text-faint)',
-          padding: 4,
-          lineHeight: 1,
-          flexShrink: 0,
-          transition: 'color 0.12s',
-          paddingTop: 2,
-        }}
-        onMouseEnter={e => { (e.currentTarget).style.color = 'var(--text-accent)' }}
-        onMouseLeave={e => { (e.currentTarget).style.color = 'var(--text-faint)' }}
+        style={{ marginTop: 1 }}
       >
         <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
           <path d="M1.5 1.5L9.5 9.5M9.5 1.5L1.5 9.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

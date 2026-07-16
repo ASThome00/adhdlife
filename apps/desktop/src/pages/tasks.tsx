@@ -10,21 +10,6 @@ import type { Task } from '@/lib/queries/tasks'
 
 type UndoState = { message: string; undo: () => void }
 
-const PAGE_HEADING: React.CSSProperties = {
-  fontFamily: 'Lora, serif',
-  fontStyle: 'italic',
-  fontSize: 19,
-  fontWeight: 600,
-  color: 'var(--text-primary)',
-  letterSpacing: '-0.02em',
-}
-
-const MONO_META: React.CSSProperties = {
-  fontFamily: 'DM Mono, monospace',
-  fontSize: 12,
-  color: 'var(--text-mono)',
-}
-
 function weekLaterStr(): string {
   const d = new Date()
   d.setDate(d.getDate() + 7)
@@ -108,8 +93,8 @@ export function TasksPage() {
   return (
     <>
       <header className="topbar" data-tauri-drag-region>
-        <h1 style={PAGE_HEADING}>{selectedCatName}</h1>
-        <span style={MONO_META}>{active.length} active</span>
+        <h1 className="topbar-title">{selectedCatName}</h1>
+        <span className="topbar-meta">{active.length} active</span>
       </header>
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
@@ -128,8 +113,8 @@ export function TasksPage() {
           {!selectedCatId && <TaskSection label="Inbox" tasks={inbox} {...sectionProps} />}
 
           {active.length === 0 && inbox.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '48px 0', fontFamily: 'Lora, serif', fontStyle: 'italic', fontSize: 15, color: 'var(--text-muted)' }}>
-              All clear! Add a task with the + button.
+            <div style={{ textAlign: 'center', padding: '48px 0', fontSize: 15, color: 'var(--text-faint)' }}>
+              All clear. Add a task with the + button.
             </div>
           )}
         </div>

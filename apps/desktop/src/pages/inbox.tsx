@@ -22,15 +22,6 @@ function computeDue(sel: DueSel): string {
   return d.toISOString()
 }
 
-const SECTION_LABEL: React.CSSProperties = {
-  fontFamily: 'Geist, sans-serif',
-  fontSize: 11,
-  fontWeight: 600,
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-  color: 'var(--text-mono)',
-}
-
 export function InboxPage() {
   const [dumpText,    setDumpText]    = useState('')
   const [hiddenIds,   setHiddenIds]   = useState<Set<string>>(new Set())
@@ -109,19 +100,8 @@ export function InboxPage() {
   return (
     <>
       <header className="topbar" data-tauri-drag-region>
-        <h1 style={{
-          fontFamily: 'Lora, serif',
-          fontStyle: 'italic',
-          fontSize: 19,
-          fontWeight: 600,
-          color: 'var(--text-primary)',
-          letterSpacing: '-0.02em',
-        }}>
-          Inbox
-        </h1>
-        <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: 'var(--text-mono)' }}>
-          {visibleTasks.length} unsorted
-        </span>
+        <h1 className="topbar-title">Inbox</h1>
+        <span className="topbar-meta">{visibleTasks.length} unsorted</span>
       </header>
 
       <div className="content-scroll">
@@ -129,8 +109,9 @@ export function InboxPage() {
 
           {/* Brain dump card */}
           <div className="card" style={{ marginBottom: 20 }}>
-            <div className="card-title">🧠 Brain dump</div>
+            <div className="card-title">Brain dump</div>
             <textarea
+              className="textarea"
               value={dumpText}
               onChange={e => setDumpText(e.target.value)}
               onKeyDown={e => {
@@ -140,23 +121,9 @@ export function InboxPage() {
                 }
               }}
               placeholder="What's on your mind? One thought per line."
-              style={{
-                width: '100%',
-                minHeight: 120,
-                resize: 'vertical',
-                fontFamily: 'Lora, serif',
-                fontStyle: 'italic',
-                fontSize: 14,
-                lineHeight: 1.7,
-                color: 'var(--text-body)',
-                background: 'transparent',
-                border: 'none',
-                outline: 'none',
-                padding: '4px 0',
-              }}
             />
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
-              <span style={{ fontFamily: 'Geist, sans-serif', fontSize: 11, color: 'var(--text-faint)' }}>
+              <span style={{ fontSize: 11, color: 'var(--text-faint)' }}>
                 {isMac ? '⌘' : 'Ctrl'}+Enter to dump
               </span>
               <button
@@ -174,8 +141,8 @@ export function InboxPage() {
           {visibleTasks.length > 0 && (
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <span style={SECTION_LABEL}>Inbox</span>
-                <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, color: 'var(--text-mono)' }}>
+                <span className="section-label">Inbox</span>
+                <span className="num" style={{ fontSize: 11, color: 'var(--text-mono)' }}>
                   ({visibleTasks.length} unsorted)
                 </span>
               </div>
@@ -196,16 +163,15 @@ export function InboxPage() {
           )}
 
           {/* Empty state */}
+          {/* P11 — empty state: body face, faint, no italics */}
           {visibleTasks.length === 0 && (
             <div style={{
               textAlign: 'center',
               padding: '48px 0',
-              fontFamily: 'Lora, serif',
-              fontStyle: 'italic',
               fontSize: 15,
-              color: 'var(--text-muted)',
+              color: 'var(--text-faint)',
             }}>
-              You're all sorted! Brain dump anything new above.
+              You're all sorted. Brain dump anything new above.
             </div>
           )}
 
@@ -226,9 +192,8 @@ export function InboxPage() {
               left: '50%',
               transform: 'translateX(-50%)',
               background: 'var(--bg-card)',
-              border: '1.5px solid var(--border)',
-              borderRadius: 14,
-              boxShadow: '3px 4px 0px var(--shadow)',
+              borderRadius: 16,
+              boxShadow: '0 12px 32px rgba(10, 15, 10, 0.18)',
               padding: '14px 18px',
               display: 'flex',
               flexDirection: 'column',
@@ -256,7 +221,6 @@ export function InboxPage() {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  fontFamily: 'Geist, sans-serif',
                   fontSize: 12,
                   fontWeight: 600,
                   color: 'var(--text-accent)',
@@ -276,21 +240,8 @@ export function InboxPage() {
                     <button
                       key={cat.id}
                       type="button"
+                      className="chip"
                       onClick={() => handleBulkAssignCat(cat.id)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 5,
-                        padding: '4px 9px',
-                        borderRadius: 7,
-                        border: `1.5px solid ${theme.ink}44`,
-                        background: 'transparent',
-                        color: 'var(--text-sidebar)',
-                        fontFamily: 'Geist, sans-serif',
-                        fontSize: 12,
-                        cursor: 'pointer',
-                        transition: 'all 0.1s',
-                      }}
                     >
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: theme.ink, display: 'inline-block' }} />
                       {theme.name}
@@ -307,18 +258,8 @@ export function InboxPage() {
                   <button
                     key={sel}
                     type="button"
+                    className="chip"
                     onClick={() => handleBulkSetDue(sel)}
-                    style={{
-                      padding: '5px 11px',
-                      borderRadius: 7,
-                      fontFamily: 'Geist, sans-serif',
-                      fontSize: 12,
-                      cursor: 'pointer',
-                      border: '1.5px solid var(--border)',
-                      background: 'transparent',
-                      color: 'var(--text-mono)',
-                      transition: 'all 0.12s',
-                    }}
                   >
                     {sel === 'today' ? 'Today' : sel === 'tomorrow' ? 'Tomorrow' : 'This week'}
                   </button>
@@ -334,22 +275,7 @@ export function InboxPage() {
 
 function BulkBtn({ children, active, onClick }: { children: React.ReactNode; active: boolean; onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        fontFamily: 'Geist, sans-serif',
-        fontSize: 12,
-        fontWeight: active ? 600 : 400,
-        color: active ? 'var(--text-accent)' : 'var(--text-sidebar)',
-        background: active ? 'var(--bg-accent)' : 'transparent',
-        border: `1.5px solid ${active ? 'var(--pill-border)' : 'var(--border)'}`,
-        borderRadius: 7,
-        padding: '4px 10px',
-        cursor: 'pointer',
-        transition: 'all 0.12s',
-      }}
-    >
+    <button type="button" className={active ? 'chip sel' : 'chip'} onClick={onClick}>
       {children}
     </button>
   )

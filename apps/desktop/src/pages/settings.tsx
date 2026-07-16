@@ -7,7 +7,7 @@ export function SettingsPage() {
   return (
     <>
       <header className="topbar" data-tauri-drag-region>
-        <h1 style={{ fontFamily: 'Lora, serif', fontStyle: 'italic', fontSize: 19, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+        <h1 className="topbar-title">
           Settings
         </h1>
       </header>

@@ -23,20 +23,20 @@ export function StatsRow({ data }: { data: WeeklyReviewData }) {
         {stats.map(s => (
           <div key={s.label} className="card" style={{ padding: 16, textAlign: 'center' }}>
             <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 26, fontWeight: 500, color: s.color }}>{s.value}</div>
-            <div style={{ fontFamily: 'Lora, serif', fontWeight: 600, fontSize: 13, color: 'var(--text-primary)', marginTop: 4 }}>{s.label}</div>
-            <div style={{ fontFamily: 'Geist, sans-serif', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{s.sub}</div>
+            <div style={{ fontFamily: 'inherit', fontWeight: 600, fontSize: 13, color: 'var(--text-primary)', marginTop: 4 }}>{s.label}</div>
+            <div style={{ fontFamily: 'inherit', fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{s.sub}</div>
           </div>
         ))}
       </div>
 
       {data.habitStats.length > 0 && (
         <div className="card">
-          <div className="card-title"><span aria-hidden>🌱</span> Habit consistency</div>
+          <div className="card-title">Habit consistency</div>
           {data.habitStats.map(h => {
             const pct = Math.round((h.doneDays / h.windowDays) * 100)
             return (
               <div key={h.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 9 }}>
-                <span style={{ fontFamily: 'Geist, sans-serif', fontSize: 12.5, color: 'var(--text-body)', width: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                <span style={{ fontFamily: 'inherit', fontSize: 12.5, color: 'var(--text-body)', width: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}>
                   {h.name}
                 </span>
                 <div style={{ flex: 1, height: 8, background: 'var(--bg-card-lite)', border: '1px solid var(--border)', borderRadius: 4, overflow: 'hidden' }}>

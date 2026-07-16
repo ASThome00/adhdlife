@@ -30,16 +30,16 @@ export function BookCard({ book, onFinish }: { book: Book; onFinish: (b: Book) =
 
   return (
     <div className="card" style={{ padding: '14px 16px' }}>
-      <div style={{ fontFamily: 'Lora, serif', fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', marginBottom: 3 }}>{book.title}</div>
-      {book.author && <div style={{ fontFamily: 'Geist, sans-serif', fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{book.author}</div>}
+      <div style={{ fontFamily: 'inherit', fontWeight: 600, fontSize: 14, color: 'var(--text-primary)', marginBottom: 3 }}>{book.title}</div>
+      {book.author && <div style={{ fontFamily: 'inherit', fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{book.author}</div>}
 
       {book.status === 'TO_READ' && (
+        /* "Start reading →" = accent-wash pill (dashed borders retired) */
         <button
           type="button"
+          className="chip sel"
           onClick={() => updateBook.mutate({ id: book.id, data: { status: 'READING', started_at: new Date().toISOString() } })}
-          style={{ fontFamily: 'Lora, serif', fontStyle: 'italic', fontSize: 12.5, color: 'var(--accent)', background: 'transparent', border: '1.5px dashed var(--border)', borderRadius: 7, padding: '5px 12px', cursor: 'pointer', transition: 'border-color 0.15s', marginTop: 2 }}
-          onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
-          onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+          style={{ marginTop: 2, fontSize: 12.5 }}
         >
           Start reading →
         </button>
@@ -48,7 +48,7 @@ export function BookCard({ book, onFinish }: { book: Book; onFinish: (b: Book) =
       {book.status === 'READING' && (
         <>
           {book.total_pages != null && (
-            <div style={{ height: 4, background: 'var(--bg-card-lite)', borderRadius: 2, border: '1px solid var(--border)', overflow: 'hidden', marginBottom: 5 }}>
+            <div style={{ height: 4, background: 'var(--bg-card-lite)', borderRadius: 2, overflow: 'hidden', marginBottom: 5 }}>
               <div style={{ height: '100%', width: `${pct}%`, background: 'var(--accent)', borderRadius: 2, transition: 'width 0.4s' }} />
             </div>
           )}
@@ -61,7 +61,7 @@ export function BookCard({ book, onFinish }: { book: Book; onFinish: (b: Book) =
                 onBlur={commitPage}
                 onKeyDown={e => { if (e.key === 'Enter') commitPage(); if (e.key === 'Escape') setEditingPage(false) }}
                 inputMode="numeric"
-                style={{ width: 56, fontFamily: 'DM Mono, monospace', fontSize: 11, color: 'var(--text-primary)', background: 'var(--bg-card-lite)', border: '1.5px solid var(--input-border)', borderRadius: 6, padding: '2px 6px', outline: 'none' }}
+                style={{ width: 56, fontFamily: 'DM Mono, monospace', fontSize: 11, color: 'var(--text-primary)', background: 'var(--bg-card-lite)', border: '1px solid transparent', borderRadius: 6, padding: '2px 6px', outline: 'none' }}
               />
             ) : (
               <button
@@ -96,13 +96,14 @@ export function BookCard({ book, onFinish }: { book: Book; onFinish: (b: Book) =
               value={notesDraft}
               onChange={e => setNotesDraft(e.target.value)}
               onBlur={commitNotes}
-              style={{ width: '100%', minHeight: 60, marginTop: 8, resize: 'vertical', fontFamily: 'Lora, serif', fontStyle: 'italic', fontSize: 12, lineHeight: 1.55, color: 'var(--text-body)', background: 'transparent', border: 'none', borderBottom: '1.5px solid var(--input-border)', padding: '4px 0', outline: 'none' }}
+              className="textarea"
+              style={{ minHeight: 60, marginTop: 8, fontSize: 12, lineHeight: 1.55 }}
             />
           ) : (
             <div
               onClick={() => { setNotesDraft(book.notes ?? ''); setEditingNotes(true) }}
               title="Click to edit notes"
-              style={{ fontFamily: 'Lora, serif', fontStyle: 'italic', fontSize: 12, lineHeight: 1.55, color: book.notes ? 'var(--text-quote)' : 'var(--text-faint)', marginTop: 8, cursor: 'text', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}
+              style={{ fontSize: 12, lineHeight: 1.55, color: book.notes ? 'var(--text-muted)' : 'var(--text-faint)', marginTop: 8, cursor: 'text', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}
             >
               {book.notes || 'Add a note…'}
             </div>
@@ -111,7 +112,7 @@ export function BookCard({ book, onFinish }: { book: Book; onFinish: (b: Book) =
       )}
 
       {book.genre && (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 10, padding: '2px 8px', borderRadius: 6, fontSize: 11, fontFamily: 'Geist, sans-serif', border: `1.5px solid ${genreTheme.ink}44`, background: genreTheme.wash, color: genreTheme.ink }}>
+        <span className="cat-pill" style={{ marginTop: 10, display: 'inline-flex', background: genreTheme.wash, color: genreTheme.text }}>
           {book.genre}
         </span>
       )}

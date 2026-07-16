@@ -11,10 +11,12 @@ const PRIO_OPTIONS: Array<{ k: Priority; label: string }> = [
   { k: 'HIGH',   label: 'High' },
 ]
 
-const MODAL_PRIO_COLORS: Record<Priority, string> = {
-  LOW:    '#a08060',
-  MEDIUM: '#c9566e',
-  HIGH:   '#96334d',
+/* Selected priority chip takes its wash bg + ink text. The prio colors are
+   shared with the health/admin/home category families (see index.css). */
+const PRIO_CHIP: Record<Priority, { wash: string; text: string }> = {
+  HIGH:   { wash: 'var(--cat-health-wash)', text: 'var(--cat-health-text)' },
+  MEDIUM: { wash: 'var(--cat-admin-wash)',  text: 'var(--cat-admin-text)'  },
+  LOW:    { wash: 'var(--cat-home-wash)',   text: 'var(--cat-home-text)'   },
 }
 
 type DueSel = 'today' | 'tomorrow' | 'week' | null
@@ -102,7 +104,7 @@ export function QuickAddModal() {
             transition={{ duration: 0.18, ease: 'easeOut' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-              <span style={{ fontFamily: 'Lora, serif', fontWeight: 600, fontSize: 15, color: 'var(--text-primary)' }}>
+              <span style={{ fontWeight: 600, fontSize: 15, color: 'var(--text-primary)' }}>
                 {isFocusToday ? 'Add focus task' : 'Quick add'}
               </span>
               <button
@@ -111,7 +113,7 @@ export function QuickAddModal() {
                 style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 2L12 12M12 2L2 12" stroke="var(--text-mono)" strokeWidth="1.5" strokeLinecap="round" />
+                  <path d="M2 2L12 12M12 2L2 12" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" />
                 </svg>
               </button>
             </div>
@@ -126,9 +128,9 @@ export function QuickAddModal() {
               }}
             />
 
-            {/* Category */}
+            {/* Category — selected chip takes its wash bg + ink text */}
             <div style={{ marginTop: 18, marginBottom: 6 }}>
-              <div style={sectionLabel}>Category</div>
+              <div className="section-label" style={{ marginBottom: 8 }}>Category</div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                 {categories.map(cat => {
                   const theme = getCategoryTheme(cat.id, cat.name)
@@ -137,22 +139,9 @@ export function QuickAddModal() {
                     <button
                       key={cat.id}
                       type="button"
+                      className="chip"
                       onClick={() => setSelCat(selected ? null : cat.id)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 5,
-                        padding: '4px 9px',
-                        borderRadius: 7,
-                        border: `1.5px solid ${selected ? theme.ink : theme.ink + '44'}`,
-                        background: selected ? theme.wash : 'transparent',
-                        color: selected ? theme.ink : 'var(--text-sidebar)',
-                        fontFamily: 'Geist, sans-serif',
-                        fontSize: 12,
-                        fontWeight: selected ? 600 : 400,
-                        cursor: 'pointer',
-                        transition: 'all 0.12s',
-                      }}
+                      style={selected ? { background: theme.wash, color: theme.text, fontWeight: 600 } : undefined}
                     >
                       <span style={{ width: 6, height: 6, borderRadius: '50%', background: theme.ink, display: 'inline-block' }} />
                       {theme.name}
@@ -162,61 +151,37 @@ export function QuickAddModal() {
               </div>
             </div>
 
-            {/* Due date */}
+            {/* Due date — selected chip takes the accent wash */}
             <div style={{ marginTop: 14 }}>
-              <div style={sectionLabel}>Due date</div>
+              <div className="section-label" style={{ marginBottom: 8 }}>Due date</div>
               <div style={{ display: 'flex', gap: 6 }}>
-                {DUE_OPTIONS.map(({ k, label }) => {
-                  const selected = selDue === k
-                  return (
-                    <button
-                      key={String(k)}
-                      type="button"
-                      onClick={() => setSelDue(k)}
-                      style={{
-                        padding: '5px 11px',
-                        borderRadius: 7,
-                        fontFamily: 'Geist, sans-serif',
-                        fontSize: 12,
-                        fontWeight: selected ? 600 : 400,
-                        cursor: 'pointer',
-                        border: `1.5px solid ${selected ? 'var(--pill-border)' : 'var(--border)'}`,
-                        background: selected ? 'var(--bg-accent)' : 'transparent',
-                        color: selected ? 'var(--text-accent)' : 'var(--text-mono)',
-                        transition: 'all 0.12s',
-                      }}
-                    >
-                      {label}
-                    </button>
-                  )
-                })}
+                {DUE_OPTIONS.map(({ k, label }) => (
+                  <button
+                    key={String(k)}
+                    type="button"
+                    className={selDue === k ? 'chip sel' : 'chip'}
+                    onClick={() => setSelDue(k)}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Priority */}
+            {/* Priority — selected chip takes its wash bg + ink text */}
             <div style={{ marginTop: 14 }}>
-              <div style={sectionLabel}>Priority</div>
+              <div className="section-label" style={{ marginBottom: 8 }}>Priority</div>
               <div style={{ display: 'flex', gap: 6 }}>
                 {PRIO_OPTIONS.map(({ k, label }) => {
                   const selected = selPrio === k
-                  const color = MODAL_PRIO_COLORS[k]
+                  const c = PRIO_CHIP[k]
                   return (
                     <button
                       key={k}
                       type="button"
+                      className="chip"
                       onClick={() => setSelPrio(k)}
-                      style={{
-                        padding: '5px 14px',
-                        borderRadius: 7,
-                        fontFamily: 'Geist, sans-serif',
-                        fontSize: 12,
-                        fontWeight: selected ? 600 : 400,
-                        cursor: 'pointer',
-                        border: `1.5px solid ${selected ? color : color + '44'}`,
-                        background: selected ? color + '18' : 'transparent',
-                        color: selected ? color : 'var(--text-sidebar)',
-                        transition: 'all 0.12s',
-                      }}
+                      style={selected ? { background: c.wash, color: c.text, fontWeight: 600 } : undefined}
                     >
                       {label}
                     </button>
@@ -242,14 +207,4 @@ export function QuickAddModal() {
       )}
     </AnimatePresence>
   )
-}
-
-const sectionLabel: React.CSSProperties = {
-  fontFamily: 'Geist, sans-serif',
-  fontSize: 11,
-  color: 'var(--text-mono)',
-  fontWeight: 600,
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase',
-  marginBottom: 8,
 }

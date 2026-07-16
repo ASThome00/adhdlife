@@ -30,7 +30,7 @@ export function ReadingPage() {
   return (
     <>
       <header className="topbar" data-tauri-drag-region>
-        <h1 style={{ fontFamily: 'Lora, serif', fontStyle: 'italic', fontSize: 19, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+        <h1 className="topbar-title">
           Reading
         </h1>
         <span style={{ fontFamily: 'DM Mono, monospace', fontSize: 12, color: 'var(--text-mono)' }}>
@@ -51,10 +51,9 @@ export function ReadingPage() {
                   {col.status === 'TO_READ' && (
                     <button
                       type="button"
+                      className="btn-pill-add"
                       onClick={() => setAddOpen(true)}
-                      style={{ fontFamily: 'Lora, serif', fontStyle: 'italic', fontSize: 13, color: 'var(--text-muted)', background: 'transparent', border: '1.5px dashed var(--border)', borderRadius: 10, padding: '10px 0', cursor: 'pointer', transition: 'border-color 0.15s, color 0.15s' }}
-                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.color = 'var(--accent)' }}
-                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text-muted)' }}
+                      style={{ marginTop: 0, fontSize: 13, padding: '10px 0' }}
                     >
                       + add a book
                     </button>
@@ -63,7 +62,7 @@ export function ReadingPage() {
                     <BookCard key={b.id} book={b} onFinish={setFinishBook} />
                   ))}
                   {colBooks.length === 0 && col.status !== 'TO_READ' && !isLoading && (
-                    <div style={{ fontFamily: 'Lora, serif', fontStyle: 'italic', fontSize: 12.5, color: 'var(--text-faint)', padding: '8px 2px' }}>
+                    <div style={{ fontSize: 12.5, color: 'var(--text-faint)', padding: '8px 2px' }}>
                       {col.status === 'READING' ? 'Nothing in progress — pick one!' : 'Finished books will land here.'}
                     </div>
                   )}

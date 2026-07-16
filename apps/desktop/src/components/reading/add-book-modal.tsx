@@ -47,7 +47,7 @@ export function AddBookModal({ onClose }: { onClose: () => void }) {
         initial={{ opacity: 0, scale: 0.96, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 8 }}
         transition={{ duration: 0.18, ease: 'easeOut' }}
       >
-        <div style={{ fontFamily: 'Lora, serif', fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginBottom: 14 }}>
+        <div style={{ fontFamily: 'inherit', fontWeight: 600, fontSize: 15, color: 'var(--text-primary)', marginBottom: 14 }}>
           Add a book
         </div>
 

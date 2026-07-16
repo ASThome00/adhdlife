@@ -4,7 +4,7 @@ interface Props {
   size?:     number
 }
 
-/** Simple ★/☆ rating — rose fill, click to set (read-only when no onChange). */
+/** Simple star rating — warm-gold fill (--cat-admin), click to set (read-only when no onChange). */
 export function StarRating({ value, onChange, size = 15 }: Props) {
   return (
     <div style={{ display: 'inline-flex', gap: 2 }}>
@@ -24,11 +24,11 @@ export function StarRating({ value, onChange, size = 15 }: Props) {
               cursor: onChange ? 'pointer' : 'default',
               fontSize: size,
               lineHeight: 1,
-              color: filled ? 'var(--accent)' : 'var(--text-faint)',
+              color: filled ? 'var(--cat-admin)' : 'var(--text-faint)',
               transition: 'color 0.12s',
             }}
           >
-            {filled ? '★' : '☆'}
+            {filled ? '\u2605' : '\u2606'}
           </button>
         )
       })}

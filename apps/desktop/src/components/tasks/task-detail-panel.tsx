@@ -1,8 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { useUpdateTask, useCompleteTask, useCreateTask, useCategories, useSubtasks, useRecurrence, useSetRecurrence } from '@/lib/hooks/use-data'
+import { getCategoryTheme } from '@/lib/category-colors'
 import type { Task, Priority, Recurrence } from '@/lib/queries/tasks'
 
-const PRIO_COLORS: Record<Priority, string> = { LOW: '#a08060', MEDIUM: '#c9566e', HIGH: '#96334d' }
+/* Selected priority chip takes its wash bg + ink text (shared families) */
+const PRIO_CHIP: Record<Priority, { wash: string; text: string }> = {
+  HIGH:   { wash: 'var(--cat-health-wash)', text: 'var(--cat-health-text)' },
+  MEDIUM: { wash: 'var(--cat-admin-wash)',  text: 'var(--cat-admin-text)'  },
+  LOW:    { wash: 'var(--cat-home-wash)',   text: 'var(--cat-home-text)'   },
+}
 const RECUR_OPTIONS: Array<{ value: Recurrence['frequency'] | 'NEVER'; label: string }> = [
   { value: 'NEVER',   label: 'Never' },
   { value: 'DAILY',   label: 'Daily' },
@@ -51,8 +57,7 @@ export function TaskDetailPanel({ task, onClose }: Props) {
       style={{
         position: 'fixed', top: 0, right: 0, bottom: 0, width: 360,
         background: 'var(--bg-card)',
-        borderLeft: '1.5px solid var(--border)',
-        boxShadow: '-4px 0 20px rgba(0,0,0,0.06)',
+        boxShadow: '-12px 0 32px rgba(10, 15, 10, 0.14)',
         zIndex: 300,
         display: 'flex', flexDirection: 'column',
         transition: 'transform 0.25s ease',
@@ -60,31 +65,33 @@ export function TaskDetailPanel({ task, onClose }: Props) {
       }}
     >
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1.5px solid var(--border)', flexShrink: 0 }}>
-        <span style={{ fontFamily: 'Lora, serif', fontStyle: 'italic', fontWeight: 600, fontSize: 14, color: 'var(--text-primary)' }}>Task details</span>
-        <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text-muted)', fontSize: 16, lineHeight: 1 }}>×</button>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px 12px', flexShrink: 0 }}>
+        <span style={{ fontWeight: 600, fontSize: 14, color: 'var(--text-primary)' }}>Task details</span>
+        <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, color: 'var(--text-muted)', fontSize: 16, lineHeight: 1, fontFamily: 'inherit' }}>×</button>
       </div>
 
       {/* Scrollable body */}
-      <div className="content-scroll" style={{ flex: 1, padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div className="content-scroll" style={{ flex: 1, padding: '4px 20px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         {/* Title */}
         <input
           ref={titleRef}
+          className="input"
           value={title}
           onChange={e => setTitle(e.target.value)}
           onBlur={() => title.trim() && title !== task.title && save({ title: title.trim() })}
-          style={{ border: 'none', borderBottom: '1.5px solid var(--input-border)', background: 'transparent', fontFamily: 'Lora, serif', fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', padding: '4px 0', outline: 'none', width: '100%' }}
+          style={{ fontSize: 15, fontWeight: 600 }}
         />
 
         {/* Notes */}
         <textarea
+          className="textarea"
           value={notes}
           onChange={e => setNotes(e.target.value)}
           onBlur={() => notes !== (task.notes ?? '') && save({ notes: notes || null })}
           placeholder="Add notes…"
           rows={3}
-          style={{ border: 'none', borderBottom: '1.5px solid var(--input-border)', background: 'transparent', fontFamily: 'Geist, sans-serif', fontSize: 13, color: 'var(--text-body)', padding: '4px 0', outline: 'none', resize: 'none', width: '100%' }}
+          style={{ minHeight: 72, fontSize: 13, resize: 'none' }}
         />
 
         {/* Due date */}
@@ -92,9 +99,10 @@ export function TaskDetailPanel({ task, onClose }: Props) {
           <Label>Due date</Label>
           <input
             type="date"
+            className="input"
             defaultValue={task.due_date?.slice(0, 10) ?? ''}
             onChange={e => handleDueChange(e.target.value)}
-            style={{ border: 'none', borderBottom: '1.5px solid var(--input-border)', background: 'transparent', fontFamily: 'Geist, sans-serif', fontSize: 13, color: 'var(--text-body)', padding: '4px 0', outline: 'none' }}
+            style={{ fontSize: 13, width: 'auto' }}
           />
         </div>
 
@@ -104,10 +112,11 @@ export function TaskDetailPanel({ task, onClose }: Props) {
           <div style={{ display: 'flex', gap: 6 }}>
             {(['LOW', 'MEDIUM', 'HIGH'] as Priority[]).map(p => {
               const sel = task.priority === p
-              const c = PRIO_COLORS[p]
+              const c = PRIO_CHIP[p]
               return (
-                <button key={p} type="button" onClick={() => save({ priority: p })}
-                  style={{ padding: '4px 12px', borderRadius: 7, fontFamily: 'Geist, sans-serif', fontSize: 12, fontWeight: sel ? 600 : 400, border: `1.5px solid ${sel ? c : c + '44'}`, background: sel ? c + '18' : 'transparent', color: sel ? c : 'var(--text-sidebar)', cursor: 'pointer', transition: 'all 0.12s' }}>
+                <button key={p} type="button" className="chip"
+                  onClick={() => save({ priority: p })}
+                  style={sel ? { background: c.wash, color: c.text, fontWeight: 600 } : undefined}>
                   {p === 'LOW' ? 'Low' : p === 'MEDIUM' ? 'Med' : 'High'}
                 </button>
               )
@@ -120,10 +129,10 @@ export function TaskDetailPanel({ task, onClose }: Props) {
           <Label>Focus</Label>
           <button
             type="button"
+            className={task.is_focus_today ? 'chip sel' : 'chip'}
             onClick={() => save(task.is_focus_today ? { is_focus_today: false } : { is_focus_today: true, status: 'ACTIVE' })}
-            style={{ padding: '4px 12px', borderRadius: 7, fontFamily: 'Geist, sans-serif', fontSize: 12, fontWeight: task.is_focus_today ? 600 : 400, border: `1.5px solid ${task.is_focus_today ? 'var(--accent)' : 'var(--border)'}`, background: task.is_focus_today ? 'var(--bg-accent)' : 'transparent', color: task.is_focus_today ? 'var(--text-accent)' : 'var(--text-sidebar)', cursor: 'pointer', transition: 'all 0.12s' }}
           >
-            {task.is_focus_today ? '⚡ Focused today' : "Add to today's focus"}
+            {task.is_focus_today ? 'Focused today' : "Add to today's focus"}
           </button>
         </div>
 
@@ -133,11 +142,12 @@ export function TaskDetailPanel({ task, onClose }: Props) {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
             {cats.map(cat => {
               const sel = task.category_id === cat.id
-              const c = cat.color
+              const theme = getCategoryTheme(cat.id, cat.name)
               return (
-                <button key={cat.id} type="button" onClick={() => save({ category_id: sel ? null : cat.id })}
-                  style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 9px', borderRadius: 7, fontFamily: 'Geist, sans-serif', fontSize: 12, fontWeight: sel ? 600 : 400, border: `1.5px solid ${sel ? c : c + '44'}`, background: sel ? c + '18' : 'transparent', color: sel ? c : 'var(--text-sidebar)', cursor: 'pointer', transition: 'all 0.12s' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: c, display: 'inline-block' }} />
+                <button key={cat.id} type="button" className="chip"
+                  onClick={() => save({ category_id: sel ? null : cat.id })}
+                  style={sel ? { background: theme.wash, color: theme.text, fontWeight: 600 } : undefined}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: theme.ink, display: 'inline-block' }} />
                   {cat.name}
                 </button>
               )
@@ -152,7 +162,7 @@ export function TaskDetailPanel({ task, onClose }: Props) {
             {subtasks.map(sub => (
               <div key={sub.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <SubCheckbox done={sub.status === 'DONE'} onToggle={() => sub.status === 'DONE' ? updateTask.mutate({ id: sub.id, data: { status: 'ACTIVE' } }) : completeTask.mutate(sub.id)} />
-                <span style={{ fontFamily: 'Geist, sans-serif', fontSize: 13, color: 'var(--text-body)', textDecoration: sub.status === 'DONE' ? 'line-through' : 'none', opacity: sub.status === 'DONE' ? 0.5 : 1 }}>
+                <span style={{ fontSize: 13, color: 'var(--text-body)', textDecoration: sub.status === 'DONE' ? 'line-through' : 'none', opacity: sub.status === 'DONE' ? 0.5 : 1 }}>
                   {sub.title}
                 </span>
               </div>
@@ -165,9 +175,10 @@ export function TaskDetailPanel({ task, onClose }: Props) {
         <div>
           <Label>Repeat</Label>
           <select
+            className="input"
             value={recurrence?.frequency ?? 'NEVER'}
             onChange={e => setRecurrence.mutate({ taskId: task.id, frequency: e.target.value === 'NEVER' ? null : e.target.value as Recurrence['frequency'] })}
-            style={{ border: 'none', borderBottom: '1.5px solid var(--input-border)', background: 'transparent', fontFamily: 'Geist, sans-serif', fontSize: 13, color: 'var(--text-body)', padding: '4px 0', outline: 'none' }}
+            style={{ fontSize: 13, width: 'auto' }}
           >
             {RECUR_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
           </select>
@@ -180,7 +191,7 @@ export function TaskDetailPanel({ task, onClose }: Props) {
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <div style={{ fontFamily: 'DM Mono, monospace', fontSize: 11, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-mono)', marginBottom: 6 }}>
+    <div className="section-label" style={{ marginBottom: 6 }}>
       {children}
     </div>
   )
@@ -188,7 +199,11 @@ function Label({ children }: { children: React.ReactNode }) {
 
 function SubCheckbox({ done, onToggle }: { done: boolean; onToggle: () => void }) {
   return (
-    <div onClick={onToggle} style={{ width: 16, height: 16, borderRadius: 4, border: `1.5px solid ${done ? '#b0435c' : 'var(--text-faint)'}`, background: done ? '#c9566e' : 'transparent', cursor: 'pointer', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div
+      onClick={onToggle}
+      className={done ? 'cb done' : 'cb'}
+      style={{ width: 16, height: 16, borderRadius: 5 }}
+    >
       {done && <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>}
     </div>
   )
@@ -207,9 +222,7 @@ function AddSubtaskInput({ parentId, onCreate }: { parentId: string; onCreate: (
         }
       }}
       placeholder="+ Add subtask"
-      style={{ border: 'none', borderBottom: '1.5px solid transparent', background: 'transparent', fontFamily: 'Geist, sans-serif', fontStyle: 'italic', fontSize: 13, color: 'var(--text-muted)', padding: '4px 0', outline: 'none', width: '100%', marginTop: 4 }}
-      onFocus={e => (e.target.style.borderBottomColor = 'var(--input-border)')}
-      onBlur={e => (e.target.style.borderBottomColor = 'transparent')}
+      style={{ border: 'none', background: 'transparent', fontFamily: 'inherit', fontSize: 13, color: 'var(--text-muted)', padding: '4px 0', outline: 'none', width: '100%', marginTop: 4 }}
     />
   )
 }

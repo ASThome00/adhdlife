@@ -81,4 +81,36 @@ adhd-life/
 │   ├── desktop/      Tauri 2 + Vite + React — macOS & Windows
 │   │   ├── src/              React frontend (pages, components, lib/queries)
 │   │   └── src-tauri/        Rust shell + SQLite migrations
-│   └── mobile/       Expo (React Native) — iOS 
+│   └── mobile/       Expo (React Native) — iOS & Android, own local DB
+├── packages/
+│   └── types/        Shared TypeScript types
+├── scripts/          Release automation
+└── CLAUDE.md         Full context for Claude Code sessions
+```
+
+No server, no API routes — React talks to SQLite directly through `tauri-plugin-sql` (desktop) and `expo-sqlite` (mobile).
+
+---
+
+## Releasing
+
+```bash
+pnpm release 1.0.0   # Builds all platforms → creates a GitHub Release
+```
+
+See [RELEASE.md](./RELEASE.md) for prerequisites (`gh` CLI, `EAS_TOKEN`) and the full checklist in [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md).
+
+---
+
+## Working with Claude Code
+
+Open Claude Code from the project root and it will automatically read `CLAUDE.md` for full context on architecture, design tokens, product decisions, and build order.
+
+```bash
+cd adhd-life
+claude
+```
+
+---
+
+*Built for the love of my life. 💜*

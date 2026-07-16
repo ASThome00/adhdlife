@@ -37,7 +37,7 @@ export function CategoriesCard() {
 
   return (
     <div className="card">
-      <div className="card-title"><span aria-hidden>🗂️</span> Categories</div>
+      <div className="card-title">Categories</div>
       {categories.map((cat, i) => {
         const theme = getCategoryTheme(cat.id, cat.name)
         const color = getCategoryTheme(cat.id).name !== 'Uncategorized' ? theme.ink : cat.color
@@ -62,14 +62,14 @@ export function CategoriesCard() {
                 onChange={e => setDraft(e.target.value)}
                 onBlur={() => commitRename(cat)}
                 onKeyDown={e => { if (e.key === 'Enter') commitRename(cat); if (e.key === 'Escape') setEditingId(null) }}
-                style={{ flex: 1, fontFamily: 'Geist, sans-serif', fontSize: 13, color: 'var(--text-primary)', background: 'transparent', border: 'none', borderBottom: '1.5px solid var(--accent)', outline: 'none', padding: '2px 0' }}
+                style={{ flex: 1, fontFamily: 'inherit', fontSize: 13, color: 'var(--text-primary)', background: 'transparent', border: 'none', borderBottom: '1.5px solid var(--accent)', outline: 'none', padding: '2px 0' }}
               />
             ) : (
               <button
                 type="button"
                 onClick={() => { setDraft(cat.name); setEditingId(cat.id) }}
                 title="Click to rename"
-                style={{ flex: 1, textAlign: 'left', fontFamily: 'Geist, sans-serif', fontSize: 13, color: 'var(--text-body)', background: 'none', border: 'none', cursor: 'text', padding: 0 }}
+                style={{ flex: 1, textAlign: 'left', fontFamily: 'inherit', fontSize: 13, color: 'var(--text-body)', background: 'none', border: 'none', cursor: 'text', padding: 0 }}
               >
                 {cat.name}
               </button>
@@ -90,14 +90,14 @@ export function CategoriesCard() {
             {colorFor === cat.id && (
               <>
                 <div style={{ position: 'fixed', inset: 0, zIndex: 90 }} onClick={() => setColorFor(null)} />
-                <div style={{ position: 'absolute', top: 30, left: 24, zIndex: 91, display: 'flex', gap: 6, background: 'var(--bg-card)', border: '1.5px solid var(--border)', borderRadius: 10, boxShadow: '3px 4px 0 var(--shadow)', padding: '8px 10px' }}>
+                <div style={{ position: 'absolute', top: 30, left: 24, zIndex: 91, display: 'flex', gap: 6, background: 'var(--bg-card)', borderRadius: 13, boxShadow: '0 12px 32px rgba(10, 15, 10, 0.18)', padding: '8px 10px' }}>
                   {PRESET_COLORS.map(c => (
                     <button
                       key={c}
                       type="button"
                       onClick={() => { updateCategory.mutate({ id: cat.id, data: { color: c } }); setColorFor(null) }}
                       aria-label={`Color ${c}`}
-                      style={{ width: 24, height: 24, borderRadius: '50%', background: c, cursor: 'pointer', border: cat.color === c ? `2px solid ${c}` : '2px solid transparent', boxShadow: cat.color === c ? `1px 1.5px 0 ${c}` : 'none', outline: cat.color === c ? '2px solid var(--bg-card)' : 'none', outlineOffset: -4 }}
+                      style={{ width: 24, height: 24, borderRadius: '50%', background: c, cursor: 'pointer', border: 'none', padding: 0, boxShadow: cat.color === c ? '0 0 0 2px var(--bg-card), 0 0 0 4px var(--accent)' : 'none' }}
                     />
                   ))}
                 </div>
@@ -106,7 +106,7 @@ export function CategoriesCard() {
           </div>
         )
       })}
-      <p style={{ fontFamily: 'Geist, sans-serif', fontSize: 11, color: 'var(--text-faint)', marginTop: 10 }}>
+      <p style={{ fontFamily: 'inherit', fontSize: 11, color: 'var(--text-faint)', marginTop: 10 }}>
         Note: the 8 default categories keep their designed colors in lists for now — custom colors apply to new categories.
       </p>
     </div>

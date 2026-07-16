@@ -8,13 +8,13 @@ export function CategoryBreakdown({ rows }: { rows: WeeklyReviewData['categoryBr
 
   return (
     <div className="card">
-      <div className="card-title"><span aria-hidden>🗂️</span> Where the week went</div>
+      <div className="card-title">Where the week went</div>
       {rows.map(r => {
         const theme = getCategoryTheme(r.category_id, r.name)
         return (
           <div key={r.category_id ?? 'none'} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 9 }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: theme.ink, flexShrink: 0 }} />
-            <span style={{ fontFamily: 'Geist, sans-serif', fontSize: 12.5, color: 'var(--text-body)', width: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <span style={{ fontFamily: 'inherit', fontSize: 12.5, color: 'var(--text-body)', width: 130, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0 }}>
               {theme.name}
             </span>
             <div style={{ flex: 1 }}>

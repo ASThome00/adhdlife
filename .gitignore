@@ -89,3 +89,6 @@ data/settings.local.json
 .output/
 tmp/
 temp/
+
+# Local GitHub credentials for Claude sessions — never commit
+.github-token

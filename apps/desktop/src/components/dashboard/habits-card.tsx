@@ -14,20 +14,11 @@ export function HabitsCard({ habits }: { habits: DashboardHabit[] }) {
 
   return (
     <div className="card">
-      <div className="card-title">
-        <span aria-hidden>🌱</span> Today's habits
-      </div>
+      {/* P2 — no title icon, no mono meta */}
+      <div className="card-title">Today's habits</div>
 
       {habits.length === 0 ? (
-        <p
-          style={{
-            fontFamily: 'Lora, serif',
-            fontStyle: 'italic',
-            fontSize: 13,
-            color: 'var(--text-mono)',
-            padding: '8px 4px',
-          }}
-        >
+        <p style={{ fontSize: 13, color: 'var(--text-faint)', padding: '8px 4px' }}>
           No habits yet — add your first one in the Habits tab.
         </p>
       ) : (
@@ -49,6 +40,7 @@ export function HabitsCard({ habits }: { habits: DashboardHabit[] }) {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
+                fontFamily: 'inherit',
               }}
               aria-label={`${h.name}, ${h.completed_today ? 'done' : 'not done'} today`}
             >
@@ -65,35 +57,20 @@ export function HabitsCard({ habits }: { habits: DashboardHabit[] }) {
                       borderRadius: '50%',
                       background: h.color || 'var(--text-faint)',
                       display: 'inline-block',
-                      opacity: 0.8,
+                      opacity: 0.75,
                     }}
                   />
                 )}
               </div>
               <div
-                style={{
-                  fontFamily: 'Geist, sans-serif',
-                  fontSize: 11,
-                  color: 'var(--text-muted)',
-                  marginTop: 6,
-                  fontWeight: 500,
-                  maxWidth: 72,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
+                className="habit-name"
+                style={{ maxWidth: 72, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
               >
                 {h.name}
               </div>
-              <div
-                style={{
-                  fontFamily: 'DM Mono, monospace',
-                  fontSize: 10,
-                  color: h.completed_today ? 'var(--text-accent)' : 'var(--text-faint)',
-                  marginTop: 2,
-                }}
-              >
-                🔥 {h.current_streak}d
+              {/* P7 — streak count renders only at ≥3 days; no flame glyphs */}
+              <div className={cn('habit-streak', h.completed_today && 'done')}>
+                {h.current_streak >= 3 ? `${h.current_streak}d` : ' '}
               </div>
             </button>
           ))}

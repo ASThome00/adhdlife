@@ -9,18 +9,7 @@ export function CategoryPill({
 }) {
   const theme = getCategoryTheme(categoryId, categoryName)
   return (
-    <span
-      style={{
-        background: theme.wash,
-        color: theme.ink,
-        borderRadius: 6,
-        fontSize: 11,
-        fontWeight: 500,
-        padding: '2px 7px',
-        border: `1px solid ${theme.ink}22`,
-        whiteSpace: 'nowrap',
-      }}
-    >
+    <span className="cat-pill" style={{ background: theme.wash, color: theme.text }}>
       {theme.name}
     </span>
   )
