@@ -98,12 +98,26 @@ adhd-life/
 │   │       └── build.rs              ✅ Done
 │   └── mobile/                       Expo iOS + Android
 │       ├── app/
-│       │   ├── _layout.tsx           ✅ Done — QueryClient + gesture handler
-│       │   └── (tabs)/
-│       │       ├── _layout.tsx       ✅ Done — 5-tab nav
-│       │       └── index.tsx         🔲 Today screen
+│       │   ├── _layout.tsx           ✅ Done — fonts + QueryClient + ThemeProvider + housekeeping
+│       │   ├── settings.tsx          ✅ Done — modal: display name + theme toggle (NO notifications)
+│       │   └── (drawer)/             Hamburger drawer nav (NOT tabs — Andrew wants room to add pages)
+│       │       ├── _layout.tsx       ✅ Done — expo-router Drawer, Quiet Garden sidebar styling
+│       │       ├── index.tsx         ✅ Done — Today: greeting, habit circles, Focus/Also today, FAB
+│       │       ├── inbox.tsx         ✅ Done — brain dump + assign-category sheet
+│       │       ├── tasks.tsx         ✅ Done — category pills + 5 sections + swipe complete/snooze/drop
+│       │       ├── habits.tsx        ✅ Done — cards + 30-day dot grid + new-habit sheet
+│       │       └── reading.tsx       ✅ Done — To read/Reading/Finished pills + detail sheet
+│       ├── components/               ✅ drawer-content, screen-header (hamburger), task-row,
+│       │                                swipeable-task-row, habit-circle, dot-grid, sheet,
+│       │                                quick-add-sheet, add-book-sheet, book-detail-sheet,
+│       │                                fab, undo-toast, section-label, empty-state
 │       └── lib/
-│           └── db.ts                 ✅ Done — expo-sqlite, mirrors schema, auto-seeds
+│           ├── db.ts                 ✅ Done — expo-sqlite, desktop-aligned seeds (cat_work…cat_home),
+│           │                            LOCAL day keys, full query/mutation helpers, housekeeping
+│           ├── theme.ts              ✅ Quiet Garden tokens (light+dark) — mobile has no CSS vars,
+│           │                            components read tokens via useTheme(); never hardcode hexes
+│           ├── use-theme.tsx         ✅ ThemeProvider/useTheme — persists choice in settings table
+│           └── utils.ts              ✅ greeting, formatDueDate, streak copy, section grouping
 ├── packages/
 │   └── types/                        Shared TS types (no Prisma)
 ├── turbo.json
@@ -191,11 +205,24 @@ updater card is separate pre-existing infra — don't rebuild it.
 
 ## Data Layer (Mobile)
 
-`apps/mobile/lib/db.ts` — expo-sqlite, same schema as desktop.
-`getDb()` opens the DB and runs `initSchema()` (creates tables + seeds categories).
-Helper functions at the bottom: `getTodayTasks()`, `getHabitsWithTodayStatus()`.
+`apps/mobile/lib/db.ts` — expo-sqlite (sync API), same schema as desktop.
+`getDb()` opens the DB, runs `initSchema()` (tables + desktop-aligned category seeds
+`cat_work…cat_home`, plus a one-shot migration remapping legacy `cat_0…cat_7` installs).
+Screens call the exported helpers directly through TanStack Query — no HTTP, no server.
 
-Mobile pages call these helpers directly — no HTTP, no server needed.
+Helpers mirror desktop query logic: `getTodayData()`, `getInboxTasks()`, `getActiveTasks()`,
+`createTask()` / `brainDump()` / `assignTaskCategory()` / `completeTask()` / `snoozeTask()` /
+`dropTask()` / `reopenTask()`, `getHabits()` / `toggleHabitToday()` (same walk-back streak
+recalc) / `getHabitHistory()`, `getBooks()` / `createBook()` / `updateBook()`,
+`getSettings()` / `updateSettings()`, `runHousekeeping()` (wakes due snoozes on app open).
+
+Mobile SQLite rules are the same as desktop: **LOCAL day keys** (`localDateStr()`),
+`datetime(completed_at) >= datetime(?, 'utc')` for done-today counts, booleans 0/1.
+
+Styling: **no NativeWind** (deliberate — it was never wired up, and adding its babel/metro
+config would risk the CI Android build). Screens use `StyleSheet` with Quiet Garden tokens
+from `lib/theme.ts` via `useTheme()`. Fonts: Hanken Grotesk + DM Mono bundled locally via
+`@expo-google-fonts/*` (no runtime fetch — the no-third-parties rule holds).
 
 ---
 
@@ -300,7 +327,7 @@ Prerequisites:
 - **Notifications: NONE anywhere** — desktop and mobile. (Overrides the original Session 10 plan below.)
 - **Reading:** pleasure-first, keep simple; add soft "put down for now" (ABANDONED rendered as "Resting"). No chapters, no reading↔task linking.
 - **No "big dates" / exam-countdown strip.** Tasks with due dates suffice.
-- **Mobile:** align seed category ids to desktop's `cat_work…cat_home` (currently `cat_0…cat_7`) BEFORE building any mobile screens.
+- **Mobile:** align seed category ids to desktop's `cat_work…cat_home` (currently `cat_0…cat_7`) BEFORE building any mobile screens. — **Done 2026-07-16** (Sessions 9–10 shipped: seed alignment + legacy-id migration + all five tabs + settings modal).
 - **Weekly review stays solo** — current one-person design is right.
 
 ## Next-build queue (post-audit, in order)
@@ -313,7 +340,7 @@ Prerequisites:
 6. Due-time picker in the task detail panel
 7. Reading card ⋯ menu (move back / Resting / remove) + "+10 pages" tap
 8. Review quick wins: show last week's priorities, carried-forward `< today`, wins list, Sunday dashboard whisper
-9. Mobile seed-id alignment (fold into Session 9)
+9. Mobile seed-id alignment (fold into Session 9) — **shipped 2026-07-16 with Sessions 9–10**
 10. Startup error states (audit B6) + paper-cuts (audit P1–P7)
 11. Mobile release pipeline — **phase 1 (Android) shipped 2026-07-16**: `build-and-release.yml`
     builds the APK directly on the GitHub runner (`expo prebuild` + Gradle + apksigner —
