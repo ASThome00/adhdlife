@@ -165,6 +165,42 @@ Not in the pipeline yet (phase 2: xcodebuild + TestFlight).
 
 ---
 
+## Testing the Android APK on Windows (before publishing)
+
+One-time setup (done 2026-07-16 on Andrew's machine): Android Studio via
+`winget install Google.AndroidStudio` + Standard first-run wizard, then
+cmdline-tools + an Android 14 (`android-34`) system image and a `adhd_pixel`
+Pixel 7 AVD. `ANDROID_HOME` and PATH (`platform-tools`, `emulator`) are set as
+user env vars. Acceleration is WHPX (already enabled — `emulator -accel-check`
+should say "installed and usable").
+
+Smoke-test flow for any built APK:
+
+```powershell
+# 1. Start the emulator (skip if already running)
+emulator -avd adhd_pixel
+
+# 2. Grab the APK you want to test
+#    - from a release:        gh release download v0.4.1 --pattern "*.apk" --dir .
+#    - from a workflow run:   gh run download <run-id> -n adhd-life-android-apk --dir .
+
+# 3. Install + launch (updates install over the top, data is kept)
+adb install -r .\ADHD-Life_0.4.1_android.apk
+adb shell monkey -p com.asthome.adhdlife 1
+
+# 4. Watch for crashes while poking around
+adb logcat -d AndroidRuntime:E *:S
+```
+
+Live development against the same emulator (debug build, hot reload):
+
+```powershell
+cd apps/mobile
+pnpm android    # expo run:android — builds a debug APK and installs it
+```
+
+---
+
 ## Manual Trigger (GitHub UI)
 
 Don't have `pnpm` or `gh`? Trigger from GitHub:
@@ -193,6 +229,17 @@ Don't have `pnpm` or `gh`? Trigger from GitHub:
 - Check the Gradle/apksigner output in the job log
 - `apksigner` errors usually mean a wrong `ANDROID_KEYSTORE_PASSWORD`,
   `ANDROID_KEY_ALIAS`, or `ANDROID_KEY_PASSWORD`
+
+**APK installs but crashes instantly (logcat: `Cannot read property 'useEffect'
+of null` in AndroidRuntime)**
+- Two React copies ended up in the bundle. Desktop wants `react ^18.3`, mobile
+  pins `18.2.0`; with no committed lockfile the hoisted install nests one of
+  them at random, and if mobile's copy loses the root slot, hoisted libs bind
+  the wrong React (this shipped in v0.4.1's APK). `apps/mobile/metro.config.js`
+  pins react/react-native resolution to the app's own copy — if this crash
+  recurs, that resolver is the first place to look. Always smoke-test the APK
+  on the emulator (§ Testing the Android APK on Windows) before announcing a
+  release.
 
 ---
 
